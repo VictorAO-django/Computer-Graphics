@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Cat and Mouse</title>
+
+    <style>
+      body {
+        background: lightblue;
+        text-align: center;
+        font-family: Arial;
+        padding: 25px;
+      }
+
+      .title {
+        color: #5c6ac4;
+      }
+
+      .scene {
+        position: relative;
+        width: 350px;
+        height: 300px;
+        margin: 50px auto;
+        background: #dff5ff;
+        border-radius: 20px;
+      }
+
+      .cat {
+        position: absolute;
+        top: 110px;
+        left: 140px;
+        font-size: 65px;
+      }
+
+      .circle {
+        position: absolute;
+        top: 125px;
+        left: 150px;
+        width: 10px;
+        height: 10px;
+        animation: round 4s linear infinite;
+      }
+
+      .mouse {
+        font-size: 30px;
+      }
+
+      @keyframes round {
+        from {
+          transform: rotate(0deg) translateX(100px);
+        }
+        to {
+          transform: rotate(360deg) translateX(100px);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Cat Watching a Mouse</h2>
+    <p id="currentTime" class="title"></p>
+
+    <div class="scene">
+      <div class="cat">🐱</div>
+
+      <div class="circle">
+        <div class="mouse">🐭</div>
+      </div>
+    </div>
+
+    <script>
+      function showTime() {
+        document.getElementById("currentTime").innerHTML =
+          new Date().toUTCString();
+      }
+      showTime();
+      setInterval(function () {
+        showTime();
+      }, 1000);
+    </script>
+  </body>
+</html>

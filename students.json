@@ -49,7 +49,9 @@
     "files": [
       "bouncing-ball.html",
       "moving-car.html",
-      "earth-orbting.html"
+      "earth-orbting.html",
+      "cat-mouse.html",
+      "car-turning.html"
     ]
   },
   {
@@ -96,10 +98,7 @@
     "matric": "CPE/2022/1071",
     "folder": "CPE-2022-1071",
     "photo": "photo.jpeg",
-    "files": [
-      "all-animations-2.html",
-      "all-animations.html"
-    ]
+    "files": ["all-animations-2.html", "all-animations.html"]
   },
   {
     "name": "Akande Testimony Peter",
@@ -120,30 +119,21 @@
     "matric": "CPE/2022/1018",
     "folder": "CPE-2022-1018",
     "photo": "photo.jpeg",
-    "files": [
-      "all-animations-2.html",
-      "all-animations.html"
-    ]
+    "files": ["all-animations-2.html", "all-animations.html"]
   },
   {
     "name": "Saliu Jamiu Ayodele",
     "matric": "CPE/2022/1091",
     "folder": "CPE-2022-1091",
     "photo": "photo.jpeg",
-    "files": [
-      "all-animations-2.html",
-      "all-animations.html"
-    ]
+    "files": ["all-animations-2.html", "all-animations.html"]
   },
   {
     "name": "Oladunni Ayomide David",
     "matric": "CPE/2022/1067",
     "folder": "CPE-2022-1067",
     "photo": "photo.jpeg",
-    "files": [
-      "all-animations-2.html",
-      "all-animations.html"
-    ]
+    "files": ["all-animations-2.html", "all-animations.html"]
   },
   {
     "name": "Adetayo Joshua Oluwadamilare",
@@ -177,16 +167,14 @@
     "name": "Oyekanmi Ayomiposi",
     "matric": "CPE/2022/1085",
     "folder": "CPE-2022-1085",
-    "files": []
+    "photo": "photo.jpeg",
+    "files": ["all-animations.html", "all-animations-2.html"]
   },
   {
     "name": "Ajala Fortunate Iyinoluwa",
     "matric": "CPE/2022/1015",
     "folder": "CPE-2022-1015",
     "photo": "photo.jpeg",
-    "files": [
-      "all-animations.html",
-      "all-animations-2.html"
-    ]
+    "files": ["all-animations.html", "all-animations-2.html"]
   }
 ]

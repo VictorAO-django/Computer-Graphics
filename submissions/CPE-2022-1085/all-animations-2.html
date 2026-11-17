@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cat, mouse, car and the summit</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px 16px;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        background: #f6f5f1;
+        color: #2c2c2a;
+      }
+
+      main {
+        max-width: 460px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 22px;
+        font-weight: 500;
+        margin: 0 0 16px;
+      }
+
+      h2 {
+        font-size: 16px;
+        font-weight: 500;
+        margin: 0 0 12px;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 12px;
+        font-size: 14px;
+        color: #5f5e5a;
+      }
+
+      .control input {
+        flex: 1;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #1f1e1d;
+          color: #f1efe8;
+        }
+
+        .card {
+          background: #2a2927;
+          border-color: #444441;
+        }
+
+        .control {
+          color: #b4b2a9;
+        }
+      }
+
+      /* ===== The summit (drama scene) ===== */
+      #scene.shake {
+        animation: shake 0.45s linear;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        20% {
+          transform: translate(-5px, 3px);
+        }
+        40% {
+          transform: translate(5px, -3px);
+        }
+        60% {
+          transform: translate(-3px, -2px);
+        }
+        80% {
+          transform: translate(3px, 2px);
+        }
+      }
+
+      #clouds {
+        animation: drift 18s ease-in-out infinite alternate;
+      }
+
+      @keyframes drift {
+        from {
+          transform: translateX(-30px);
+        }
+        to {
+          transform: translateX(30px);
+        }
+      }
+
+      .fig {
+        transform-box: view-box;
+        transition: transform 0.6s ease;
+      }
+
+      #rival {
+        transform-origin: 80px 334px;
+      }
+
+      #rival.lean {
+        transform: translateX(10px) rotate(4deg);
+      }
+
+      #rival.back {
+        transform: translateX(-14px) rotate(-3deg);
+      }
+
+      #claude {
+        transform-origin: 290px 334px;
+      }
+
+      #claude.power {
+        transform: translateY(-4px) scale(1.05);
+      }
+
+      .breath {
+        transform-box: view-box;
+        animation: breathe 3s ease-in-out infinite;
+      }
+
+      .rival-breath {
+        transform-origin: 80px 334px;
+      }
+
+      .claude-breath {
+        transform-origin: 290px 334px;
+      }
+
+      @keyframes breathe {
+        0%,
+        100% {
+          transform: scaleY(1);
+        }
+        50% {
+          transform: scaleY(1.02);
+        }
+      }
+
+      #rival-head {
+        transform-box: view-box;
+        transform-origin: 80px 266px;
+      }
+
+      #rival-head.angry {
+        animation: head-shake 0.5s ease-in-out infinite;
+      }
+
+      @keyframes head-shake {
+        0%,
+        100% {
+          transform: rotate(-6deg);
+        }
+        50% {
+          transform: rotate(6deg);
+        }
+      }
+
+      #rays {
+        opacity: 0;
+        transform-box: view-box;
+        transform-origin: 290px 244px;
+      }
+
+      #rays.on {
+        animation: pulse 0.9s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.35;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.25);
+        }
+      }
+
+      #crutch {
+        transform-box: view-box;
+        transform-origin: 248px 288px;
+      }
+
+      #crutch.tap {
+        animation: tap 1.2s ease-in-out infinite;
+      }
+
+      @keyframes tap {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        50% {
+          transform: rotate(-5deg);
+        }
+      }
+
+      .bubble {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .bubble.show {
+        opacity: 1;
+      }
+
+      .bubble text {
+        font:
+          500 14px system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <h1>Cat, mouse, car and the summit</h1>
+
+      <!-- ===== 1. Cat and mouse ===== -->
+      <section class="card">
+        <h2>Cat watching a mouse</h2>
+        <svg
+          id="cat-scene"
+          viewBox="0 0 380 380"
+          role="img"
+          aria-label="A still cat follows a circling mouse with its eyes"
+        >
+          <rect width="380" height="380" rx="12" fill="#F3E9D2" />
+          <circle
+            cx="190"
+            cy="190"
+            r="110"
+            fill="none"
+            stroke="#B99B6B"
+            stroke-width="1.5"
+            stroke-dasharray="5 6"
+          />
+
+          <path
+            d="M190 226 C 170 252, 215 262, 232 240"
+            fill="none"
+            stroke="#E8A04C"
+            stroke-width="9"
+            stroke-linecap="round"
+          />
+          <ellipse cx="190" cy="200" rx="22" ry="30" fill="#E8A04C" />
+          <path
+            d="M176 190 L186 190 M176 202 L188 202 M194 190 L204 190 M192 202 L204 202"
+            stroke="#B8702A"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <polygon points="173,158 177,138 189,152" fill="#E8A04C" />
+          <polygon points="207,158 203,138 191,152" fill="#E8A04C" />
+          <circle cx="190" cy="165" r="17" fill="#E8A04C" />
+          <circle cx="182" cy="162" r="5" fill="#F4F0C8" />
+          <circle cx="198" cy="162" r="5" fill="#F4F0C8" />
+          <circle id="pupil-left" cx="182" cy="162" r="2.3" fill="#2B2B2B" />
+          <circle id="pupil-right" cx="198" cy="162" r="2.3" fill="#2B2B2B" />
+          <polygon points="187,170 193,170 190,174" fill="#C0504D" />
+          <path
+            d="M178 168 L166 164 M178 171 L166 172 M202 168 L214 164 M202 171 L214 172"
+            stroke="#7A4A1E"
+            stroke-width="1"
+            stroke-linecap="round"
+          />
+
+          <g id="mouse">
+            <ellipse cx="190" cy="80" rx="13" ry="7" fill="#9A9A9A" />
+            <circle cx="203" cy="80" r="5.5" fill="#9A9A9A" />
+            <circle cx="198" cy="74" r="3.5" fill="#D9A3A3" />
+            <circle cx="198" cy="86" r="3.5" fill="#D9A3A3" />
+            <circle cx="206" cy="78.5" r="1.2" fill="#2B2B2B" />
+            <circle cx="208.5" cy="80" r="1.4" fill="#C0504D" />
+            <path
+              d="M177 80 C 168 72, 162 86, 152 78"
+              fill="none"
+              stroke="#D9A3A3"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </g>
+        </svg>
+        <label class="control"
+          >Mouse speed
+          <input
+            id="mouse-speed"
+            type="range"
+            min="0"
+            max="3"
+            step="0.1"
+            value="1"
+          />
+        </label>
+      </section>
+
+      <!-- ===== 2. Car on a turntable ===== -->
+      <section class="card">
+        <h2>Car spinning in one spot</h2>
+        <svg
+          id="car-scene"
+          viewBox="0 0 380 380"
+          role="img"
+          aria-label="A red car rotating about its center on a turntable"
+        >
+          <rect width="380" height="380" rx="12" fill="#E3EAF0" />
+          <circle cx="190" cy="190" r="140" fill="#6E7A86" />
+          <circle cx="190" cy="190" r="128" fill="#8A96A3" />
+          <circle
+            cx="190"
+            cy="190"
+            r="128"
+            fill="none"
+            stroke="#EDEDED"
+            stroke-width="2"
+            stroke-dasharray="3 9"
+          />
+          <line
+            x1="190"
+            y1="50"
+            x2="190"
+            y2="62"
+            stroke="#EDEDED"
+            stroke-width="3"
+          />
+          <line
+            x1="190"
+            y1="318"
+            x2="190"
+            y2="330"
+            stroke="#EDEDED"
+            stroke-width="3"
+          />
+          <line
+            x1="50"
+            y1="190"
+            x2="62"
+            y2="190"
+            stroke="#EDEDED"
+            stroke-width="3"
+          />
+          <line
+            x1="318"
+            y1="190"
+            x2="330"
+            y2="190"
+            stroke="#EDEDED"
+            stroke-width="3"
+          />
+
+          <g id="car">
+            <g transform="translate(-1 110)">
+              <ellipse
+                cx="192"
+                cy="82"
+                rx="31"
+                ry="15"
+                fill="#2B2B2B"
+                opacity="0.25"
+              />
+              <rect
+                x="164"
+                y="62"
+                width="14"
+                height="6"
+                rx="2"
+                fill="#1F1F1F"
+              />
+              <rect
+                x="164"
+                y="92"
+                width="14"
+                height="6"
+                rx="2"
+                fill="#1F1F1F"
+              />
+              <rect
+                x="202"
+                y="62"
+                width="14"
+                height="6"
+                rx="2"
+                fill="#1F1F1F"
+              />
+              <rect
+                x="202"
+                y="92"
+                width="14"
+                height="6"
+                rx="2"
+                fill="#1F1F1F"
+              />
+              <path
+                d="M160 72 Q160 66 167 66 L205 66 Q218 67 222 76 L222 84 Q218 93 205 94 L167 94 Q160 94 160 88 Z"
+                fill="#C73B34"
+              />
+              <path
+                d="M200 67 Q213 70 214 80 Q213 90 200 93 Z"
+                fill="#B5332D"
+              />
+              <rect
+                x="176"
+                y="70"
+                width="26"
+                height="20"
+                rx="7"
+                fill="#A82F2A"
+              />
+              <path d="M200 71 L209 74 L209 86 L200 89 Z" fill="#9CCBE4" />
+              <rect
+                x="171"
+                y="72"
+                width="5"
+                height="16"
+                rx="2"
+                fill="#7FAFC8"
+              />
+              <rect
+                x="182"
+                y="72"
+                width="14"
+                height="16"
+                rx="4"
+                fill="#B5332D"
+              />
+              <ellipse cx="204" cy="63" rx="3.5" ry="2" fill="#A82F2A" />
+              <ellipse cx="204" cy="97" rx="3.5" ry="2" fill="#A82F2A" />
+              <rect
+                x="220"
+                y="69"
+                width="3"
+                height="6"
+                rx="1.5"
+                fill="#F6E27A"
+              />
+              <rect
+                x="220"
+                y="85"
+                width="3"
+                height="6"
+                rx="1.5"
+                fill="#F6E27A"
+              />
+              <rect
+                x="159"
+                y="69"
+                width="3"
+                height="6"
+                rx="1.5"
+                fill="#7A1713"
+              />
+              <rect
+                x="159"
+                y="85"
+                width="3"
+                height="6"
+                rx="1.5"
+                fill="#7A1713"
+              />
+            </g>
+          </g>
+          <circle cx="190" cy="190" r="3" fill="#E3EAF0" />
+        </svg>
+        <label class="control"
+          >Car speed
+          <input
+            id="car-speed"
+            type="range"
+            min="-3"
+            max="3"
+            step="0.1"
+            value="1"
+          />
+        </label>
+      </section>
+
+      <!-- ===== 3. The summit ===== -->
+      <section class="card">
+        <h2>The summit</h2>
+        <svg
+          id="stage"
+          viewBox="0 0 380 420"
+          role="img"
+          aria-label="On a stormy cliff, a tall blue figure challenges a one-legged orange Claude figure on a crutch, who answers with calm defiance"
+        >
+          <g id="scene">
+            <rect id="sky" width="380" height="420" rx="12" fill="#1B2340" />
+            <g id="clouds">
+              <ellipse cx="70" cy="30" rx="70" ry="22" fill="#2C3659" />
+              <ellipse cx="300" cy="22" rx="80" ry="24" fill="#2C3659" />
+              <ellipse cx="190" cy="60" rx="60" ry="14" fill="#252E4E" />
+            </g>
+            <polygon
+              id="bolt"
+              points="332,40 316,92 330,92 312,140 346,82 332,82 348,40"
+              fill="#F6D860"
+              opacity="0"
+            />
+            <g id="rain"></g>
+            <rect x="0" y="332" width="380" height="88" fill="#2B2B33" />
+            <rect x="0" y="332" width="380" height="5" fill="#3E3E4A" />
+
+            <g id="rival" class="fig">
+              <g class="breath rival-breath">
+                <rect x="62" y="314" width="13" height="20" fill="#3E4C75" />
+                <rect x="85" y="314" width="13" height="20" fill="#3E4C75" />
+                <rect
+                  x="55"
+                  y="266"
+                  width="50"
+                  height="50"
+                  rx="10"
+                  fill="#5A6C9C"
+                />
+                <path
+                  d="M58 284 L102 296 M102 284 L58 296"
+                  stroke="#7E8FB8"
+                  stroke-width="9"
+                  stroke-linecap="round"
+                />
+                <g id="rival-head">
+                  <circle cx="80" cy="244" r="22" fill="#7E8FB8" />
+                  <path
+                    d="M66 238 L78 242 M94 238 L82 242"
+                    stroke="#1B2340"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="72" cy="246" r="2.5" fill="#1B2340" />
+                  <circle cx="88" cy="246" r="2.5" fill="#1B2340" />
+                  <path
+                    d="M72 257 Q80 253 88 257"
+                    fill="none"
+                    stroke="#1B2340"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </g>
+              </g>
+            </g>
+
+            <g id="claude" class="fig">
+              <g
+                id="rays"
+                stroke="#F6D860"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              >
+                <line x1="320" y1="244" x2="332" y2="244" />
+                <line x1="311.2" y1="265.2" x2="319.7" y2="273.7" />
+                <line x1="311.2" y1="222.8" x2="319.7" y2="214.3" />
+                <line x1="290" y1="214" x2="290" y2="202" />
+                <line x1="268.8" y1="222.8" x2="260.3" y2="214.3" />
+                <line x1="260" y1="244" x2="248" y2="244" />
+                <line x1="268.8" y1="265.2" x2="260.3" y2="273.7" />
+              </g>
+              <g class="breath claude-breath">
+                <rect x="284" y="312" width="16" height="22" fill="#8F3F24" />
+                <rect
+                  x="265"
+                  y="266"
+                  width="50"
+                  height="50"
+                  rx="10"
+                  fill="#C4623F"
+                />
+                <line
+                  x1="266"
+                  y1="280"
+                  x2="250"
+                  y2="292"
+                  stroke="#C4623F"
+                  stroke-width="9"
+                  stroke-linecap="round"
+                />
+                <line
+                  x1="314"
+                  y1="282"
+                  x2="330"
+                  y2="270"
+                  stroke="#C4623F"
+                  stroke-width="9"
+                  stroke-linecap="round"
+                />
+                <circle cx="290" cy="244" r="22" fill="#D97757" />
+                <path
+                  d="M276 236 L288 240 M304 236 L292 240"
+                  stroke="#4A1B0C"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                />
+                <circle cx="282" cy="246" r="3.5" fill="#FFFFFF" />
+                <circle cx="298" cy="246" r="3.5" fill="#FFFFFF" />
+                <circle cx="282" cy="246" r="1.6" fill="#4A1B0C" />
+                <circle cx="298" cy="246" r="1.6" fill="#4A1B0C" />
+                <path
+                  d="M283 257 Q290 261 297 257"
+                  fill="none"
+                  stroke="#4A1B0C"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </g>
+              <g
+                id="crutch"
+                stroke="#E8D8C0"
+                stroke-width="4"
+                stroke-linecap="round"
+              >
+                <line x1="236" y1="288" x2="260" y2="288" />
+                <line x1="248" y1="288" x2="244" y2="334" />
+              </g>
+            </g>
+
+            <g id="bubble1" class="bubble">
+              <rect
+                x="14"
+                y="34"
+                width="208"
+                height="62"
+                rx="10"
+                fill="#F1EFE8"
+              />
+              <polygon points="60,96 84,96 74,128" fill="#F1EFE8" />
+              <text id="b1l1" x="28" y="60" fill="#2C2C2A"></text>
+              <text id="b1l2" x="28" y="82" fill="#2C2C2A"></text>
+            </g>
+
+            <g id="bubble2" class="bubble">
+              <rect
+                x="130"
+                y="150"
+                width="236"
+                height="62"
+                rx="10"
+                fill="#FAECE7"
+              />
+              <polygon points="270,212 294,212 288,222" fill="#FAECE7" />
+              <text id="b2l1" x="144" y="176" fill="#712B13"></text>
+              <text id="b2l2" x="144" y="198" fill="#712B13"></text>
+            </g>
+
+            <rect
+              id="flash"
+              width="380"
+              height="420"
+              rx="12"
+              fill="#FFFFFF"
+              opacity="0"
+            />
+          </g>
+        </svg>
+      </section>
+    </main>
+
+    <script>
+      /* ===== Cat, mouse and car ===== */
+      const CENTER = { x: 190, y: 190 };
+      const ORBIT_RADIUS = 110;
+      const EYE_TRAVEL = 2.4;
+
+      const mouse = document.getElementById("mouse");
+      const pupilLeft = document.getElementById("pupil-left");
+      const pupilRight = document.getElementById("pupil-right");
+      const car = document.getElementById("car");
+      const mouseSpeedInput = document.getElementById("mouse-speed");
+      const carSpeedInput = document.getElementById("car-speed");
+
+      const eyes = [
+        { el: pupilLeft, x: 182, y: 162 },
+        { el: pupilRight, x: 198, y: 162 },
+      ];
+
+      let mouseAngle = 0;
+      let carAngle = 0;
+      let lastTime = null;
+
+      function lookAt(targetX, targetY) {
+        eyes.forEach((eye) => {
+          const dx = targetX - eye.x;
+          const dy = targetY - eye.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          eye.el.setAttribute(
+            "cx",
+            (eye.x + (dx / dist) * EYE_TRAVEL).toFixed(2),
+          );
+          eye.el.setAttribute(
+            "cy",
+            (eye.y + (dy / dist) * EYE_TRAVEL).toFixed(2),
+          );
+        });
+      }
+
+      function frame(time) {
+        if (lastTime === null) lastTime = time;
+        const dt = (time - lastTime) / 1000;
+        lastTime = time;
+
+        const mouseSpeed = parseFloat(mouseSpeedInput.value);
+        const carSpeed = parseFloat(carSpeedInput.value);
+
+        mouseAngle = (mouseAngle + mouseSpeed * 45 * dt) % 360;
+        carAngle = (carAngle + carSpeed * 60 * dt) % 360;
+
+        mouse.setAttribute(
+          "transform",
+          `rotate(${mouseAngle} ${CENTER.x} ${CENTER.y})`,
+        );
+        car.setAttribute(
+          "transform",
+          `rotate(${carAngle} ${CENTER.x} ${CENTER.y})`,
+        );
+
+        const rad = (mouseAngle * Math.PI) / 180;
+        const mouseX = CENTER.x + ORBIT_RADIUS * Math.sin(rad);
+        const mouseY = CENTER.y - ORBIT_RADIUS * Math.cos(rad);
+        lookAt(mouseX, mouseY);
+
+        requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(frame);
+
+      /* ===== The summit ===== */
+      const $ = (id) => document.getElementById(id);
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      const scene = $("scene");
+      const flashRect = $("flash");
+      const bolt = $("bolt");
+      const rival = $("rival");
+      const rivalHead = $("rival-head");
+      const claude = $("claude");
+      const rays = $("rays");
+      const crutch = $("crutch");
+      const bubble1 = $("bubble1");
+      const bubble2 = $("bubble2");
+      const lines = {
+        b1l1: $("b1l1"),
+        b1l2: $("b1l2"),
+        b2l1: $("b2l1"),
+        b2l2: $("b2l2"),
+      };
+
+      const NS = "http://www.w3.org/2000/svg";
+      const rainLayer = $("rain");
+      const drops = [];
+
+      for (let i = 0; i < 70; i++) {
+        const line = document.createElementNS(NS, "line");
+        line.setAttribute("stroke", "#8FA3C8");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("opacity", "0.45");
+        rainLayer.appendChild(line);
+        drops.push({
+          el: line,
+          x: Math.random() * 400,
+          y: Math.random() * 332,
+          speed: 6 + Math.random() * 6,
+        });
+      }
+
+      function animateRain() {
+        drops.forEach((drop) => {
+          drop.y += drop.speed;
+          drop.x -= 2;
+          if (drop.y > 332) {
+            drop.y = -10;
+            drop.x = Math.random() * 400;
+          }
+          drop.el.setAttribute("x1", drop.x.toFixed(1));
+          drop.el.setAttribute("y1", drop.y.toFixed(1));
+          drop.el.setAttribute("x2", (drop.x - 3).toFixed(1));
+          drop.el.setAttribute("y2", (drop.y + 12).toFixed(1));
+        });
+        requestAnimationFrame(animateRain);
+      }
+
+      animateRain();
+
+      async function typeLine(el, text, delay = 45) {
+        el.textContent = "";
+        for (const ch of text) {
+          el.textContent += ch;
+          await sleep(delay);
+        }
+      }
+
+      async function flash(strong = true) {
+        bolt.setAttribute("opacity", "1");
+        flashRect.setAttribute("opacity", strong ? "0.85" : "0.35");
+        if (strong) {
+          scene.classList.remove("shake");
+          void scene.getBoundingClientRect();
+          scene.classList.add("shake");
+        }
+        await sleep(90);
+        flashRect.setAttribute("opacity", "0.15");
+        await sleep(70);
+        flashRect.setAttribute("opacity", strong ? "0.6" : "0.25");
+        await sleep(90);
+        flashRect.setAttribute("opacity", "0");
+        await sleep(250);
+        bolt.setAttribute("opacity", "0");
+      }
+
+      function reset() {
+        [bubble1, bubble2].forEach((b) => b.classList.remove("show"));
+        Object.values(lines).forEach((l) => (l.textContent = ""));
+        rival.classList.remove("lean", "back");
+        rivalHead.classList.remove("angry");
+        claude.classList.remove("power");
+        rays.classList.remove("on");
+        crutch.classList.remove("tap");
+      }
+
+      async function play() {
+        while (true) {
+          reset();
+          await sleep(900);
+
+          rival.classList.add("lean");
+          rivalHead.classList.add("angry");
+          bubble1.classList.add("show");
+          await typeLine(lines.b1l1, "You'll never reach the summit.");
+          await typeLine(lines.b1l2, "Not like that.", 70);
+          await sleep(700);
+
+          await flash(true);
+          rival.classList.remove("lean");
+          rivalHead.classList.remove("angry");
+          await sleep(500);
+
+          bubble1.classList.remove("show");
+          await sleep(350);
+          bubble2.classList.add("show");
+          claude.classList.add("power");
+          rays.classList.add("on");
+          crutch.classList.add("tap");
+          await typeLine(lines.b2l1, "Watch me. I never needed");
+          await typeLine(lines.b2l2, "two legs to rise.", 70);
+          await sleep(900);
+
+          await flash(true);
+          rival.classList.add("back");
+          await sleep(2800);
+
+          bubble2.classList.remove("show");
+          await sleep(1200);
+        }
+      }
+
+      function ambientLightning() {
+        setTimeout(
+          async () => {
+            await flash(false);
+            ambientLightning();
+          },
+          4000 + Math.random() * 5000,
+        );
+      }
+
+      ambientLightning();
+      play();
+    </script>
+  </body>
+</html>

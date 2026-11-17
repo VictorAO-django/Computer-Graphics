@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Rotating Car</title>
+
+    <style>
+      body {
+        background: lightgrey;
+        text-align: center;
+        font-family: Arial;
+        padding: 25px;
+      }
+
+      .title {
+        color: #5c6ac4;
+      }
+
+      .scene {
+        margin: 100px auto;
+        perspective: 500px;
+      }
+
+      .car {
+        font-size: 100px;
+        display: inline-block;
+        animation: rotate 3s linear infinite;
+      }
+
+      @keyframes rotate {
+        from {
+          transform: rotateY(0deg);
+        }
+
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Rotating Car Animation</h2>
+    <p id="currentTime" class="title"></p>
+
+    <div class="scene">
+      <div class="car">🚗</div>
+    </div>
+
+    <script>
+      function showTime() {
+        document.getElementById("currentTime").innerHTML =
+          new Date().toUTCString();
+      }
+      showTime();
+      setInterval(function () {
+        showTime();
+      }, 1000);
+    </script>
+  </body>
+</html>

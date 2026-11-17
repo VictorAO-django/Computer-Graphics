@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Computer Graphics Animations</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eeeeee;
+        text-align: center;
+      }
+
+      h1 {
+        background: #172554;
+        color: white;
+        padding: 20px;
+        margin: 0;
+      }
+
+      h2 {
+        color: #172554;
+        padding: 10px;
+      }
+
+      .section {
+        margin: 20px auto;
+        width: 95%;
+        max-width: 900px;
+        border: 2px solid #333;
+        border-radius: 10px;
+        overflow: hidden;
+        background: white;
+      }
+
+      /* BOUNCING BALL */
+
+      #ballArea {
+        height: 300px;
+        background: black;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #ball {
+        width: 40px;
+        height: 40px;
+        background: red;
+        border-radius: 50%;
+        position: absolute;
+        left: 50px;
+        top: 50px;
+      }
+
+      /* MOVING CAR */
+
+      #carArea {
+        height: 300px;
+        background: skyblue;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sun {
+        position: absolute;
+        right: 40px;
+        top: 20px;
+        font-size: 45px;
+      }
+
+      .road {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 90px;
+        background: #444;
+      }
+
+      .roadLine {
+        position: absolute;
+        top: 42px;
+        width: 100%;
+        border-top: 4px dashed white;
+      }
+
+      #car {
+        position: absolute;
+        bottom: 35px;
+        left: -120px;
+        font-size: 75px;
+        animation: drive 6s linear infinite;
+      }
+
+      @keyframes drive {
+        from {
+          left: -120px;
+        }
+        to {
+          left: 100%;
+        }
+      }
+
+      /* FULL MOON */
+
+      #moonArea {
+        height: 300px;
+        background: #050b2c;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #moon {
+        position: absolute;
+        top: 70px;
+        left: -100px;
+        font-size: 90px;
+        animation: moonMove 10s linear infinite;
+      }
+
+      @keyframes moonMove {
+        from {
+          left: -100px;
+        }
+        to {
+          left: 100%;
+        }
+      }
+
+      .stars {
+        color: white;
+        font-size: 25px;
+        line-height: 3;
+        letter-spacing: 15px;
+      }
+
+      footer {
+        background: #172554;
+        color: white;
+        padding: 15px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>COMPUTER GRAPHICS ANIMATIONS</h1>
+
+    <!-- EXERCISE 1: BOUNCING BALL -->
+
+    <div class="section">
+      <h2>1. Bouncing Ball Animation</h2>
+
+      <div id="ballArea">
+        <div id="ball"></div>
+      </div>
+    </div>
+
+    <!-- EXERCISE 2: MOVING CAR -->
+
+    <div class="section">
+      <h2>2. Moving Car Animation</h2>
+
+      <div id="carArea">
+        <div class="sun">☀️</div>
+        <div class="road">
+          <div class="roadLine"></div>
+        </div>
+        <div id="car">🚗</div>
+      </div>
+    </div>
+
+    <!-- EXERCISE 3: MOVING FULL MOON -->
+
+    <div class="section">
+      <h2>3. Moving Full Moon Animation</h2>
+
+      <div id="moonArea">
+        <div class="stars">✦　*　✦　*　✦　*　✦</div>
+        <div id="moon">🌕</div>
+      </div>
+    </div>
+
+    <footer>Computer Graphics Practical Assignment</footer>
+
+    <script>
+      // BOUNCING BALL ANIMATION
+
+      const ball = document.getElementById("ball");
+      const area = document.getElementById("ballArea");
+
+      let x = 50;
+      let y = 50;
+
+      let dx = 4;
+      let dy = 3;
+
+      function moveBall() {
+        let maxX = area.clientWidth - ball.offsetWidth;
+        let maxY = area.clientHeight - ball.offsetHeight;
+
+        x += dx;
+        y += dy;
+
+        if (x >= maxX || x <= 0) {
+          dx = -dx;
+        }
+
+        if (y >= maxY || y <= 0) {
+          dy = -dy;
+        }
+
+        ball.style.left = x + "px";
+        ball.style.top = y + "px";
+
+        requestAnimationFrame(moveBall);
+      }
+
+      moveBall();
+    </script>
+  </body>
+</html>
