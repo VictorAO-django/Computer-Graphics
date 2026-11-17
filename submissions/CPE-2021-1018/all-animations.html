@@ -3,136 +3,151 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Racing Car, Bouncing Ball &amp; Rotating Moon</title>
+<title>Unified Scene Animation</title>
 <style>
     body {
         margin: 0;
-        background: #0f1729;
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-    }
-
-    h2 {
-        padding: 10px;
+        background: #090e17;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
     }
 
     canvas {
         display: block;
         width: 100%;
-        max-width: 600px;
-        margin: auto;
-        background: #172554;
-        border: 2px solid white;
-        border-radius: 6px;
-    }
-
-    button {
-        margin: 12px;
-        padding: 12px 24px;
-        font-size: 16px;
-        border: none;
+        max-width: 800px;
+        background: #0b1340;
+        border: 1px solid #333;
         border-radius: 8px;
-        background: #22c55e;
-        color: black;
-        cursor: pointer;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     }
 </style>
 </head>
 <body>
 
-<h2>🏎️ Racing Car, ⚽ Bouncing Ball &amp; 🌙 Rotating Moon</h2>
-
-<canvas id="scene" width="600" height="400"></canvas>
-
-<button onclick="running = !running">
-    Start / Pause
-</button>
+<canvas id="scene" width="800" height="500"></canvas>
 
 <script>
     /* =====================================================================
-     * THE SINGLE CONTROL POINT -- change a value here, save, refresh.
-     * Every colour, speed and size used below reads from this object.
+     * CONFIG: The single control point for the entire animation.
+     * Tune colors, speeds, sizes, and physics here.
      * ===================================================================== */
     const CONFIG = {
-        // sky + ground
+        // Environment
         skyTop: "#0b1340",
         skyBottom: "#e8799f",
         groundColor: "#1f7a4d",
-        roadColor: "#33363f",
+        roadColor: "#2b2e38",
         laneColor: "#e5e7eb",
+        horizonY: 350,
 
-        // car
-        carSpeed: 1.6,            // pixels moved per frame
+        // Car
+        carSpeed: 3.5,
         carBodyColor: "#e63946",
         carRoofColor: "#f6a623",
         carWindowColor: "#bfe3f7",
         carRimColor: "#d1d5db",
+        carY: 410,
 
-        // bouncing ball
-        ballRadius: 22,
-        ballSpeed: 2.4,
-        ballColor: "#ffd93d",
-        ballPanelColor: "#1a1a2e",
+        // Bouncing Ball Physics (Perpetual Bounce)
+        ballRadius: 28,
+        gravity: 0.25,
+        bounceVelocity: -11.5, // Constant upward kick on impact ensures it never stops bouncing
+        ballStartX: 500,
 
-        // moon
-        moonRadius: 36,
-        moonSpeed: 0.018,
+        // Moon
+        moonRadius: 45,
+        moonSpeed: 0.012,
         moonColor: "#f3efe0",
         moonCraterColor: "#a9a28f",
-        moonX: 480,
-        moonY: 95,
+        moonX: 650,
+        moonY: 130,
+        
+        // Stars
+        starCount: 40
     };
 
     const canvas = document.getElementById("scene");
     const ctx = canvas.getContext("2d");
 
-    let carX = -100;
-    let ballX = 300;
-    let ballY = 180;
-    let ballVel = CONFIG.ballSpeed;
+    // Dynamic State Variables
+    let carX = -120;
+    let ballX = CONFIG.ballStartX;
+    let ballY = 100;
+    let ballVelY = 0;
     let moonAngle = 0;
     let laneOffset = 0;
-    let running = true;
+    let starOffset = 0;
+    let frameCount = 0;
 
-    // a handful of fixed star positions, picked once
-    const stars = Array.from({ length: 26 }, (_, i) => ({
-        x: (i * 83 + 25) % canvas.width,
-        y: (i * 47 + 15) % 190,
-        twinkleOffset: i * 0.7,
+    // Initialize random stars
+    const stars = Array.from({ length: CONFIG.starCount }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * CONFIG.horizonY,
+        twinkleSpeed: Math.random() * 0.05 + 0.02,
+        twinkleOffset: Math.random() * Math.PI * 2,
+        size: Math.random() * 1.5 + 0.5
     }));
 
-    function drawSky() {
-        const gradient = ctx.createLinearGradient(0, 0, 0, 280);
-        gradient.addColorStop(0, CONFIG.skyTop);
-        gradient.addColorStop(1, CONFIG.skyBottom);
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, 280);
+    function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
     }
 
-    function drawStars(frame) {
+    function drawEnvironment() {
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, CONFIG.horizonY);
+        skyGradient.addColorStop(0, CONFIG.skyTop);
+        skyGradient.addColorStop(1, CONFIG.skyBottom);
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, canvas.width, CONFIG.horizonY);
+
         for (const s of stars) {
-            const twinkle = 0.5 + 0.5 * Math.sin(frame * 0.05 + s.twinkleOffset);
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.4 + twinkle * 0.6})`;
+            let drawX = (s.x + starOffset) % canvas.width;
+            if (drawX < 0) drawX += canvas.width;
+            
+            const twinkle = 0.5 + 0.5 * Math.sin(frameCount * s.twinkleSpeed + s.twinkleOffset);
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + twinkle * 0.8})`;
             ctx.beginPath();
-            ctx.arc(s.x, s.y, 1.6, 0, Math.PI * 2);
+            ctx.arc(drawX, s.y, s.size, 0, Math.PI * 2);
             ctx.fill();
+        }
+
+        const ground = ctx.createLinearGradient(0, CONFIG.horizonY, 0, canvas.height);
+        ground.addColorStop(0, CONFIG.groundColor);
+        ground.addColorStop(1, "#14532d");
+        ctx.fillStyle = ground;
+        ctx.fillRect(0, CONFIG.horizonY, canvas.width, canvas.height - CONFIG.horizonY);
+
+        const roadY = CONFIG.horizonY + 45;
+        const roadHeight = 85;
+        ctx.fillStyle = CONFIG.roadColor;
+        ctx.fillRect(0, roadY, canvas.width, roadHeight);
+
+        ctx.fillStyle = CONFIG.laneColor;
+        const dashW = 70, gapW = 60, period = dashW + gapW;
+        for (let x = -period; x < canvas.width + period; x += period) {
+            ctx.fillRect(x + laneOffset, roadY + roadHeight / 2 - 3, dashW, 6);
         }
     }
 
-    // a lit-sphere moon: radial gradient from a bright edge down to a
-    // shaded crater colour, instead of one flat fill.
     function drawMoon() {
         ctx.save();
         ctx.translate(CONFIG.moonX, CONFIG.moonY);
 
-        // soft glow halo behind the moon
-        const halo = ctx.createRadialGradient(0, 0, CONFIG.moonRadius * 0.6, 0, 0, CONFIG.moonRadius * 2.2);
-        halo.addColorStop(0, "rgba(255, 250, 220, 0.35)");
+        const halo = ctx.createRadialGradient(0, 0, CONFIG.moonRadius * 0.8, 0, 0, CONFIG.moonRadius * 3);
+        halo.addColorStop(0, "rgba(255, 250, 220, 0.4)");
         halo.addColorStop(1, "rgba(255, 250, 220, 0)");
         ctx.fillStyle = halo;
         ctx.beginPath();
-        ctx.arc(0, 0, CONFIG.moonRadius * 2.2, 0, Math.PI * 2);
+        ctx.arc(0, 0, CONFIG.moonRadius * 3, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.rotate(moonAngle);
@@ -150,13 +165,12 @@
         ctx.fill();
 
         ctx.fillStyle = CONFIG.moonCraterColor;
-        ctx.beginPath(); ctx.arc(-12, -8, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(12, 12, 9, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(13, -15, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-15, -10, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(15, 15, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(18, -20, 6, 0, Math.PI * 2); ctx.fill();
 
-        // rotating marker line, so the spin actually reads
-        ctx.strokeStyle = "rgba(0,0,0,0.25)";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,0.15)";
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, -CONFIG.moonRadius);
@@ -165,140 +179,168 @@
         ctx.restore();
     }
 
-    function drawGroundAndRoad() {
-        const ground = ctx.createLinearGradient(0, 280, 0, 400);
-        ground.addColorStop(0, CONFIG.groundColor);
-        ground.addColorStop(1, "#14532d");
-        ctx.fillStyle = ground;
-        ctx.fillRect(0, 280, canvas.width, 45);
-
-        ctx.fillStyle = CONFIG.roadColor;
-        ctx.fillRect(0, 325, canvas.width, 60);
-
-        // centre line, subtly scrolling so the road feels like it's moving
-        ctx.fillStyle = CONFIG.laneColor;
-        const dashW = 55, gapW = 55, period = dashW + gapW;
-        for (let x = -period; x < canvas.width + period; x += period) {
-            ctx.fillRect(x + laneOffset, 352, dashW, 5);
-        }
-    }
-
-    // rounded-rectangle helper (canvas has no built-in roundRect on every target)
-    function roundRect(x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arcTo(x + w, y, x + w, y + h, r);
-        ctx.arcTo(x + w, y + h, x, y + h, r);
-        ctx.arcTo(x, y + h, x, y, r);
-        ctx.arcTo(x, y, x + w, y, r);
-        ctx.closePath();
-    }
-
     function drawAlloyWheel(cx, cy) {
         ctx.fillStyle = "#111827";
-        ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI * 2); ctx.fill();
 
         ctx.fillStyle = CONFIG.carRimColor;
-        ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
 
         ctx.strokeStyle = CONFIG.carRimColor;
-        ctx.lineWidth = 1.4;
-        for (let i = 0; i < 4; i++) {
-            const a = (Math.PI / 2) * i + moonAngle; // reuse the clock to spin the wheels too
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            const a = (Math.PI * 2 / 5) * i + moonAngle * 4; 
             ctx.beginPath();
             ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + Math.cos(a) * 5.5, cy + Math.sin(a) * 5.5);
+            ctx.lineTo(cx + Math.cos(a) * 7, cy + Math.sin(a) * 7);
             ctx.stroke();
         }
     }
 
     function drawCar(x, y) {
-        // body, gradient top-to-bottom for a touch of shading
-        const body = ctx.createLinearGradient(x, y - 5, x, y + 25);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.beginPath();
+        ctx.ellipse(x + 50, y + 40, 60, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        const body = ctx.createLinearGradient(x, y - 5, x, y + 30);
         body.addColorStop(0, CONFIG.carBodyColor);
-        body.addColorStop(1, "#9c1f2e");
+        body.addColorStop(1, "#8a1622");
         ctx.fillStyle = body;
-        roundRect(x, y, 85, 25, 7);
+        roundRect(x, y, 105, 30, 8);
         ctx.fill();
 
-        // roof / cabin
         ctx.fillStyle = CONFIG.carRoofColor;
-        roundRect(x + 18, y - 18, 45, 20, 6);
+        roundRect(x + 22, y - 22, 55, 25, 7);
         ctx.fill();
 
-        // windows
         ctx.fillStyle = CONFIG.carWindowColor;
-        roundRect(x + 24, y - 14, 14, 12, 2); ctx.fill();
-        roundRect(x + 42, y - 14, 15, 12, 2); ctx.fill();
+        roundRect(x + 28, y - 17, 18, 15, 3); ctx.fill();
+        roundRect(x + 50, y - 17, 20, 15, 3); ctx.fill();
 
-        // headlight on the leading edge
+        const beam = ctx.createLinearGradient(x + 102, y + 10, x + 300, y + 10);
+        beam.addColorStop(0, "rgba(255, 246, 201, 0.6)");
+        beam.addColorStop(1, "rgba(255, 246, 201, 0)");
+        ctx.fillStyle = beam;
+        ctx.beginPath();
+        ctx.moveTo(x + 102, y + 5);
+        ctx.lineTo(x + 300, y - 10);
+        ctx.lineTo(x + 300, y + 35);
+        ctx.lineTo(x + 102, y + 15);
+        ctx.fill();
+
         ctx.fillStyle = "#fff6c9";
         ctx.beginPath();
-        ctx.arc(x + 83, y + 8, 3.5, 0, Math.PI * 2);
+        ctx.arc(x + 102, y + 10, 4.5, 0, Math.PI * 2);
         ctx.fill();
+        
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(x, y + 5, 4, 12);
 
-        drawAlloyWheel(x + 18, y + 25);
-        drawAlloyWheel(x + 68, y + 25);
+        drawAlloyWheel(x + 25, y + 30);
+        drawAlloyWheel(x + 80, y + 30);
     }
 
-    // ball with a soft radial highlight plus a simple panel pattern,
-    // instead of a flat fill.
     function drawBall(x, y) {
-        const shade = ctx.createRadialGradient(
-            x - CONFIG.ballRadius * 0.35, y - CONFIG.ballRadius * 0.35, CONFIG.ballRadius * 0.1,
-            x, y, CONFIG.ballRadius
-        );
-        shade.addColorStop(0, "#ffffff");
-        shade.addColorStop(0.5, CONFIG.ballColor);
-        shade.addColorStop(1, "#d6a800");
-        ctx.fillStyle = shade;
+        const groundY = CONFIG.horizonY - CONFIG.ballRadius; 
+        
+        // Ground drop shadow
+        const heightRatio = Math.max(0, 1 - ((groundY - y) / 180));
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * heightRatio})`;
         ctx.beginPath();
-        ctx.arc(x, y, CONFIG.ballRadius, 0, Math.PI * 2);
+        ctx.ellipse(x, groundY + CONFIG.ballRadius + 5, CONFIG.ballRadius * 0.9 * heightRatio, (CONFIG.ballRadius * 0.3) * heightRatio, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = CONFIG.ballPanelColor;
+        ctx.save();
+        ctx.translate(x, y);
+
+        // Solid basketball orange with a subtle 3D lighting gradient (No neon/glow)
+        const shade = ctx.createRadialGradient(-CONFIG.ballRadius * 0.3, -CONFIG.ballRadius * 0.3, 0, 0, 0, CONFIG.ballRadius);
+        shade.addColorStop(0, "#ff9900");
+        shade.addColorStop(0.7, "#cc5200");
+        shade.addColorStop(1, "#662900");
+        ctx.fillStyle = shade;
+        
+        ctx.beginPath();
+        ctx.arc(0, 0, CONFIG.ballRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Realistic Basketball Lines
+        ctx.strokeStyle = "#1a0a00";
         ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(x, y, CONFIG.ballRadius * 0.55, 0, Math.PI * 2);
+        ctx.lineCap = "round";
+
+        // Vertical line
+        ctx.beginPath(); 
+        ctx.moveTo(0, -CONFIG.ballRadius); 
+        ctx.lineTo(0, CONFIG.ballRadius); 
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x - CONFIG.ballRadius * 0.82, y);
-        ctx.lineTo(x + CONFIG.ballRadius * 0.82, y);
+        
+        // Horizontal line
+        ctx.beginPath(); 
+        ctx.moveTo(-CONFIG.ballRadius, 0); 
+        ctx.lineTo(CONFIG.ballRadius, 0); 
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, y - CONFIG.ballRadius * 0.82);
-        ctx.lineTo(x, y - CONFIG.ballRadius * 0.3);
+        
+        // Left curve
+        ctx.beginPath(); 
+        ctx.arc(-CONFIG.ballRadius * 0.7, 0, CONFIG.ballRadius * 0.82, -Math.PI/2.3, Math.PI/2.3); 
         ctx.stroke();
+        
+        // Right curve
+        ctx.beginPath(); 
+        ctx.arc(CONFIG.ballRadius * 0.7, 0, CONFIG.ballRadius * 0.82, Math.PI - Math.PI/2.3, Math.PI + Math.PI/2.3); 
+        ctx.stroke();
+
+        ctx.restore();
     }
 
-    function drawScene(frame) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function update() {
+        frameCount++;
 
-        drawSky();
-        drawStars(frame);
-        drawMoon();
-        drawGroundAndRoad();
-        drawCar(carX, 335);
-        drawBall(ballX, ballY);
-
-        if (running) {
-            carX += CONFIG.carSpeed;
-            if (carX > canvas.width + 20) carX = -100;
-
-            ballY += ballVel;
-            if (ballY > 250 || ballY < 35) ballVel = -ballVel;
-
-            moonAngle += CONFIG.moonSpeed;
-
-            laneOffset -= 1.2;
-            const period = 110;
-            if (laneOffset <= -period) laneOffset += period;
+        carX += CONFIG.carSpeed;
+        if (carX > canvas.width + 100) {
+            carX = -150;
         }
 
-        requestAnimationFrame(() => drawScene(frame + 1));
+        starOffset -= (CONFIG.carSpeed * 0.08);
+
+        // Perpetual Ball Physics
+        ballVelY += CONFIG.gravity;
+        ballY += ballVelY;
+        
+        const floorY = CONFIG.horizonY - CONFIG.ballRadius;
+        if (ballY > floorY) {
+            ballY = floorY;
+            // Using a constant kick velocity instead of a fractional multiplier guarantees it keeps bouncing forever
+            ballVelY = CONFIG.bounceVelocity; 
+        }
+
+        moonAngle += CONFIG.moonSpeed;
+
+        laneOffset -= CONFIG.carSpeed;
+        const period = 130;
+        if (laneOffset <= -period) {
+            laneOffset += period;
+        }
     }
 
-    drawScene(0);
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        drawEnvironment();
+        drawMoon();
+        drawBall(ballX, ballY);
+        drawCar(carX, CONFIG.carY);
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    loop();
 </script>
 </body>
 </html>
