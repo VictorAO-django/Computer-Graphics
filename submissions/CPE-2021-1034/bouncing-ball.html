@@ -1,112 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Bouncing Ball - Rigid 3D Sphere</title>
-    <style>
-        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #1a1a1a; }
-        canvas { border: 2px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 4px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bouncing Ball</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0e1116; display: flex; align-items: center; justify-content: center; }
+  canvas { max-width: 100%; height: auto; border: 1px solid #2a3140; }
+</style>
 </head>
 <body>
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <script>
-        /* 
-         * CONFIG: Controls all tunable parameters for the animation.
-         * - ballColor: Base color of the ball (a 3D lighting gradient is applied over this).
-         * - backgroundColor: CSS color string for the canvas background.
-         * - radius: Size of the ball in pixels.
-         * - startX / startY: Initial position. Use a number, or "center" to auto-center.
-         * - velocityX / velocityY: Speed and direction per frame (sign determines direction).
-         */
-        const CONFIG = {
-            ballColor: "#d32f2f", 
-            backgroundColor: "#2b2b2b",
-            radius: 45,
-            startX: "center",
-            startY: "center",
-            velocityX: 6, // Positive = right, negative = left. 0 = straight vertical.
-            velocityY: 5  // Positive = down, negative = up. 0 = straight horizontal.
-        };
+<canvas id="c"></canvas>
+<script>
+/* ===================== EDIT ONLY THIS OBJECT =====================
+   canvasWidth / canvasHeight : canvas size in pixels
+   backgroundColor            : fill color behind everything
+   ballColor                  : main ball color
+   highlightColor             : small shine spot on the ball
+   shadowColor                : floor-less drop shadow under the ball
+   radius                     : ball radius in pixels
+   startX / startY            : starting position in pixels, or "center"
+   velocityX / velocityY      : pixels per frame. Sign = direction
+                                (+X right, -X left, +Y down, -Y up).
+                                One axis 0  -> bounces between two walls.
+                                Both non-zero -> diagonal four-wall bounce.
+   trailLength                : number of past positions drawn as a trail (0 = off)
+   trailMaxAlpha              : opacity of the newest trail dot (0..1)
+   highlightOffset            : shine spot offset as a fraction of radius
+   highlightSize              : shine spot size as a fraction of radius
+   shadowOffsetY              : shadow offset below ball, fraction of radius
+   shadowAlpha                : shadow opacity (0..1)
+================================================================== */
+const CONFIG = {
+  canvasWidth: 800,
+  canvasHeight: 600,
+  backgroundColor: "#10131a",
+  ballColor: "#ff7a45",
+  highlightColor: "#ffd9c7",
+  shadowColor: "#000000",
+  radius: 30,
+  startX: "center",
+  startY: "center",
+  velocityX: 5,
+  velocityY: 3,
+  trailLength: 18,
+  trailMaxAlpha: 0.35,
+  highlightOffset: 0.35,
+  highlightSize: 0.22,
+  shadowOffsetY: 0.25,
+  shadowAlpha: 0.3
+};
 
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = CONFIG.canvasWidth;
+canvas.height = CONFIG.canvasHeight;
 
-        // Initialize state directly from CONFIG
-        let x = CONFIG.startX === "center" ? canvas.width / 2 : CONFIG.startX;
-        let y = CONFIG.startY === "center" ? canvas.height / 2 : CONFIG.startY;
-        let vx = CONFIG.velocityX;
-        let vy = CONFIG.velocityY;
+const ball = {
+  x: CONFIG.startX === "center" ? canvas.width / 2 : CONFIG.startX,
+  y: CONFIG.startY === "center" ? canvas.height / 2 : CONFIG.startY,
+  vx: CONFIG.velocityX,
+  vy: CONFIG.velocityY
+};
+const trail = [];
 
-        function update() {
-            // Standard linear translation
-            x += vx;
-            y += vy;
+function update() {
+  trail.push({ x: ball.x, y: ball.y });
+  if (trail.length > CONFIG.trailLength) trail.shift();
 
-            // X-axis screen edge collision
-            if (x - CONFIG.radius <= 0) {
-                x = CONFIG.radius; // Snap to boundary to prevent getting stuck
-                vx = -vx;          // Reverse direction
-            } else if (x + CONFIG.radius >= canvas.width) {
-                x = canvas.width - CONFIG.radius;
-                vx = -vx;
-            }
+  ball.x += ball.vx;
+  ball.y += ball.vy;
 
-            // Y-axis screen edge collision
-            if (y - CONFIG.radius <= 0) {
-                y = CONFIG.radius;
-                vy = -vy;
-            } else if (y + CONFIG.radius >= canvas.height) {
-                y = canvas.height - CONFIG.radius;
-                vy = -vy;
-            }
-        }
+  // Edge collision: clamp inside the canvas, then reflect that axis' velocity.
+  if (ball.x - CONFIG.radius < 0)             { ball.x = CONFIG.radius;                       ball.vx = -ball.vx; }
+  if (ball.x + CONFIG.radius > canvas.width)  { ball.x = canvas.width - CONFIG.radius;        ball.vx = -ball.vx; }
+  if (ball.y - CONFIG.radius < 0)             { ball.y = CONFIG.radius;                       ball.vy = -ball.vy; }
+  if (ball.y + CONFIG.radius > canvas.height) { ball.y = canvas.height - CONFIG.radius;       ball.vy = -ball.vy; }
+}
 
-        function draw() {
-            // Draw solid background
-            ctx.fillStyle = CONFIG.backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+function circle(x, y, r, color, alpha) {
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
 
-            // Draw the base colored circle
-            ctx.beginPath();
-            ctx.arc(x, y, CONFIG.radius, 0, Math.PI * 2);
-            ctx.fillStyle = CONFIG.ballColor;
-            ctx.fill();
-            ctx.closePath();
+function draw() {
+  ctx.fillStyle = CONFIG.backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Overlay a 3D lighting gradient to make it look like a physical sphere
-            ctx.beginPath();
-            ctx.arc(x, y, CONFIG.radius, 0, Math.PI * 2);
-            
-            // Shift the center of the gradient to the top-left for a simulated light source
-            const lightOffsetX = x - (CONFIG.radius * 0.35);
-            const lightOffsetY = y - (CONFIG.radius * 0.35);
-            
-            const lightingGrad = ctx.createRadialGradient(
-                lightOffsetX, lightOffsetY, CONFIG.radius * 0.05, // Brightest inner point
-                x, y, CONFIG.radius                               // Darkest outer edge
-            );
-            
-            // Highlight
-            lightingGrad.addColorStop(0, "rgba(255, 255, 255, 0.7)");
-            lightingGrad.addColorStop(0.2, "rgba(255, 255, 255, 0.1)");
-            lightingGrad.addColorStop(0.5, "rgba(0, 0, 0, 0)"); // Base color shows through
-            // Shadow
-            lightingGrad.addColorStop(0.85, "rgba(0, 0, 0, 0.3)");
-            lightingGrad.addColorStop(1, "rgba(0, 0, 0, 0.7)");
-            
-            ctx.fillStyle = lightingGrad;
-            ctx.fill();
-            ctx.closePath();
-        }
+  // Fading trail (oldest = smallest and faintest)
+  trail.forEach((p, i) => {
+    const t = (i + 1) / trail.length;
+    circle(p.x, p.y, CONFIG.radius * t, CONFIG.ballColor, CONFIG.trailMaxAlpha * t);
+  });
 
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
+  circle(ball.x, ball.y + CONFIG.radius * CONFIG.shadowOffsetY, CONFIG.radius, CONFIG.shadowColor, CONFIG.shadowAlpha);
+  circle(ball.x, ball.y, CONFIG.radius, CONFIG.ballColor, 1);
+  circle(ball.x - CONFIG.radius * CONFIG.highlightOffset,
+         ball.y - CONFIG.radius * CONFIG.highlightOffset,
+         CONFIG.radius * CONFIG.highlightSize, CONFIG.highlightColor, 1);
+}
 
-        loop();
-    </script>
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
 </body>
 </html>

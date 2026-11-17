@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computer Graphics Animations</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #eef2f7; color: #222; }
+header { background: #14213d; color: white; text-align: center; padding: 25px; }
+header h1 { margin: 0; font-size: 28px; }
+header p { margin-bottom: 0; color: #ddd; }
+.container { max-width: 1100px; margin: auto; padding: 20px; }
+.animation-box { background: white; margin-bottom: 30px; padding: 20px; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,.12); }
+h2 { text-align: center; color: #14213d; }
+canvas { display: block; width: 100%; max-width: 800px; height: auto; margin: auto; border: 2px solid #ddd; border-radius: 8px; }
+.description { text-align: center; line-height: 1.6; color: #555; }
+footer { text-align: center; padding: 20px; background: #14213d; color: white; }
+</style>
+</head>
+<body>
+<header>
+  <h1>COMPUTER GRAPHICS ANIMATIONS</h1>
+  <p>HTML, CSS and JavaScript Animation Project</p>
+</header>
+
+<main class="container">
+  <section class="animation-box">
+    <h2>1. Cat Looking at a Mouse</h2>
+    <canvas id="catCanvas" width="800" height="400"></canvas>
+    <p class="description">A cat watches a mouse moving continuously around it in a circular motion.</p>
+  </section>
+
+  <section class="animation-box">
+    <h2>2. Car Rotating About Its Own Axis</h2>
+    <canvas id="carCanvas" width="800" height="400"></canvas>
+    <p class="description">A car rotates continuously through 360 degrees about its central axis.</p>
+  </section>
+
+  <section class="animation-box">
+    <h2>3. Dramatic Human Conversation</h2>
+    <canvas id="humanCanvas" width="800" height="450"></canvas>
+    <p class="description">A person without legs, seated in a wheelchair, expresses emotions through hand gestures and facial movements while having a dramatic conversation.</p>
+  </section>
+</main>
+
+<footer><p>Computer Graphics Animation Project</p></footer>
+
+<script>
+// ANIMATION 1: CAT AND MOUSE
+const catCanvas = document.getElementById("catCanvas");
+const catCtx = catCanvas.getContext("2d");
+let mouseAngle = 0;
+
+function drawCat() {
+  const ctx = catCtx;
+  ctx.clearRect(0, 0, 800, 400);
+  ctx.fillStyle = "#dff3ff";
+  ctx.fillRect(0, 0, 800, 400);
+  ctx.fillStyle = "#83bd72";
+  ctx.fillRect(0, 310, 800, 90);
+
+  const mx = 400 + 160 * Math.cos(mouseAngle);
+  const my = 210 + 110 * Math.sin(mouseAngle);
+
+  // Cat body and head
+  ctx.fillStyle = "#f28c28";
+  ctx.beginPath(); ctx.ellipse(400, 260, 75, 65, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(400, 145, 65, 0, Math.PI * 2); ctx.fill();
+
+  // Ears
+  ctx.beginPath();
+  ctx.moveTo(350,110); ctx.lineTo(350,45); ctx.lineTo(390,100);
+  ctx.moveTo(410,100); ctx.lineTo(450,45); ctx.lineTo(450,110);
+  ctx.fill();
+  ctx.fillStyle = "#ffb6b6";
+  ctx.beginPath();
+  ctx.moveTo(360,95); ctx.lineTo(357,65); ctx.lineTo(380,95);
+  ctx.moveTo(420,95); ctx.lineTo(443,65); ctx.lineTo(440,95);
+  ctx.fill();
+
+  // Eyes follow the mouse
+  const eyeX = Math.cos(mouseAngle) * 8;
+  const eyeY = Math.sin(mouseAngle) * 5;
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(380,140,15,0,Math.PI*2); ctx.arc(420,140,15,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "black";
+  ctx.beginPath();
+  ctx.arc(380+eyeX,140+eyeY,7,0,Math.PI*2);
+  ctx.arc(420+eyeX,140+eyeY,7,0,Math.PI*2); ctx.fill();
+
+  // Nose, mouth and whiskers
+  ctx.fillStyle = "pink";
+  ctx.beginPath(); ctx.moveTo(393,160); ctx.lineTo(407,160); ctx.lineTo(400,170); ctx.fill();
+  ctx.strokeStyle = "black"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(400,170); ctx.lineTo(400,180); ctx.lineTo(390,185);
+  ctx.moveTo(400,180); ctx.lineTo(410,185);
+  ctx.moveTo(350,165); ctx.lineTo(310,155);
+  ctx.moveTo(350,175); ctx.lineTo(310,180);
+  ctx.moveTo(450,165); ctx.lineTo(490,155);
+  ctx.moveTo(450,175); ctx.lineTo(490,180);
+  ctx.stroke();
+
+  // Tail
+  ctx.beginPath(); ctx.moveTo(460,260); ctx.quadraticCurveTo(540,190,510,250);
+  ctx.strokeStyle = "#f28c28"; ctx.lineWidth = 15; ctx.stroke();
+
+  // Mouse
+  ctx.fillStyle = "#777";
+  ctx.beginPath(); ctx.ellipse(mx,my,25,17,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx+20,my-5,13,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#ffaaaa";
+  ctx.beginPath(); ctx.arc(mx+12,my-17,8,0,Math.PI*2); ctx.arc(mx+30,my-17,8,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "black";
+  ctx.beginPath(); ctx.arc(mx+25,my-8,3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = "gray"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(mx-20,my); ctx.quadraticCurveTo(mx-55,my-25,mx-65,my+5); ctx.stroke();
+
+  mouseAngle += 0.025;
+  requestAnimationFrame(drawCat);
+}
+drawCat();
+
+// ANIMATION 2: ROTATING CAR
+const carCanvas = document.getElementById("carCanvas");
+const carCtx = carCanvas.getContext("2d");
+let carAngle = 0;
+
+function drawCar() {
+  const ctx = carCtx;
+  ctx.clearRect(0,0,800,400);
+  ctx.fillStyle = "#e4f5ff"; ctx.fillRect(0,0,800,400);
+  ctx.fillStyle = "#888"; ctx.fillRect(0,340,800,60);
+
+  ctx.save();
+  ctx.translate(400,200);
+  ctx.rotate(carAngle);
+
+  ctx.fillStyle = "#e63946";
+  ctx.beginPath(); ctx.roundRect(-120,-35,240,75,15); ctx.fill();
+  ctx.fillStyle = "#1769aa";
+  ctx.beginPath();
+  ctx.moveTo(-75,-35); ctx.lineTo(-40,-100); ctx.lineTo(55,-100);
+  ctx.lineTo(95,-35); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = "#bde0fe";
+  ctx.beginPath();
+  ctx.moveTo(-45,-45); ctx.lineTo(-25,-85); ctx.lineTo(5,-85); ctx.lineTo(5,-45); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(15,-85); ctx.lineTo(50,-85); ctx.lineTo(75,-45); ctx.lineTo(15,-45); ctx.fill();
+
+  ctx.fillStyle = "black";
+  ctx.beginPath(); ctx.arc(-75,45,28,0,Math.PI*2); ctx.arc(75,45,28,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#ccc";
+  ctx.beginPath(); ctx.arc(-75,45,12,0,Math.PI*2); ctx.arc(75,45,12,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "yellow"; ctx.fillRect(110,-20,15,18);
+  ctx.fillStyle = "red"; ctx.fillRect(-125,-20,12,18);
+  ctx.restore();
+
+  ctx.fillStyle = "#14213d"; ctx.font = "17px Arial"; ctx.textAlign = "center";
+  ctx.fillText("360° Continuous Rotation",400,375);
+  carAngle += 0.025;
+  requestAnimationFrame(drawCar);
+}
+drawCar();
+
+// ANIMATION 3: DRAMATIC CONVERSATION
+const humanCanvas = document.getElementById("humanCanvas");
+const humanCtx = humanCanvas.getContext("2d");
+let movement = 0, direction = 1, speaking = 0;
+
+function drawHuman() {
+  const ctx = humanCtx;
+  ctx.clearRect(0,0,800,450);
+  ctx.fillStyle = "#172554"; ctx.fillRect(0,0,800,450);
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.beginPath(); ctx.arc(300,180,160,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#334155"; ctx.fillRect(0,390,800,60);
+
+  // Wheelchair wheel and spokes
+  ctx.strokeStyle = "#ccc"; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.arc(270,335,75,0,Math.PI*2); ctx.stroke();
+  ctx.lineWidth = 3;
+  for(let i=0;i<8;i++) {
+    const a=i*Math.PI/4;
+    ctx.beginPath(); ctx.moveTo(270,335);
+    ctx.lineTo(270+Math.cos(a)*75,335+Math.sin(a)*75); ctx.stroke();
+  }
+  ctx.fillStyle = "white";
+  ctx.beginPath(); ctx.arc(270,335,10,0,Math.PI*2); ctx.fill();
+
+  // Wheelchair frame and seat
+  ctx.strokeStyle = "#aaa"; ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(215,255); ctx.lineTo(335,255); ctx.lineTo(335,335);
+  ctx.moveTo(215,255); ctx.lineTo(215,330); ctx.stroke();
+
+  // Seated character's head and hair
+  ctx.fillStyle = "#c6865a";
+  ctx.beginPath(); ctx.arc(270,125,48,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#24150d";
+  ctx.beginPath(); ctx.arc(270,93,43,Math.PI,Math.PI*2); ctx.fill();
+
+  // Eyes and eyebrows
+  ctx.fillStyle = "black";
+  ctx.beginPath(); ctx.arc(253,122,5,0,Math.PI*2); ctx.arc(287,122,5,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = "#24150d"; ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(244,110); ctx.lineTo(262,108);
+  ctx.moveTo(278,108); ctx.lineTo(296,110); ctx.stroke();
+
+  // Animated mouth
+  ctx.fillStyle = "#5c1724";
+  ctx.beginPath(); ctx.ellipse(270,150,9,5+speaking*12,0,0,Math.PI*2); ctx.fill();
+
+  // Torso
+  ctx.fillStyle = "#2563eb";
+  ctx.beginPath(); ctx.roundRect(220,175,100,90,15); ctx.fill();
+
+  // Moving arms and hands
+  ctx.strokeStyle = "#c6865a"; ctx.lineWidth = 13; ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(225,190); ctx.lineTo(180,220+movement);
+  ctx.moveTo(315,190); ctx.lineTo(365,210-movement); ctx.stroke();
+  ctx.fillStyle = "#c6865a";
+  ctx.beginPath();
+  ctx.arc(180,220+movement,10,0,Math.PI*2);
+  ctx.arc(365,210-movement,10,0,Math.PI*2); ctx.fill();
+
+  // Second person standing and listening
+  ctx.fillStyle = "#d6a078";
+  ctx.beginPath(); ctx.arc(560,130,43,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#1c1917";
+  ctx.beginPath(); ctx.arc(560,105,40,Math.PI,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "black";
+  ctx.beginPath(); ctx.arc(545,130,4,0,Math.PI*2); ctx.arc(575,130,4,0,Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = "#dc2626"; ctx.fillRect(515,175,90,140);
+  ctx.strokeStyle = "#111827"; ctx.lineWidth = 18;
+  ctx.beginPath();
+  ctx.moveTo(535,315); ctx.lineTo(525,385);
+  ctx.moveTo(585,315); ctx.lineTo(595,385); ctx.stroke();
+
+  ctx.strokeStyle = "#d6a078"; ctx.lineWidth = 12;
+  ctx.beginPath();
+  ctx.moveTo(520,195); ctx.lineTo(480,250);
+  ctx.moveTo(600,195); ctx.lineTo(640,250); ctx.stroke();
+
+  // Speech bubble
+  ctx.fillStyle = "white";
+  ctx.beginPath(); ctx.roundRect(350,20,260,55,12); ctx.fill();
+  ctx.fillStyle = "#111827"; ctx.font = "bold 16px Arial"; ctx.textAlign = "center";
+  ctx.fillText("I WILL NEVER GIVE UP!",480,53);
+
+  // Floor line
+  ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(20,390); ctx.lineTo(780,390); ctx.stroke();
+
+  movement += 1.5*direction;
+  if(movement>18 || movement < -18) direction *= -1;
+  speaking = Math.abs(Math.sin(Date.now()/120));
+  requestAnimationFrame(drawHuman);
+}
+drawHuman();
+</script>
+</body>
+</html>

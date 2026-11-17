@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The old track</title>
+<style>
+:root{--bg:#ece8df;--panel:#fffdf8;--text:#23201c;--muted:#6b6459;--btn:#23201c;--btn-text:#f6f3ea;--accent:#e08a4c;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14121a;--panel:#201d29;--text:#f1ece2;--muted:#a69fb0;--btn:#f1ece2;--btn-text:#14121a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14121a;--panel:#201d29;--text:#f1ece2;--muted:#a69fb0;--btn:#f1ece2;--btn-text:#14121a;color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:0 12px;box-sizing:border-box}
+.wrap{width:min(100%,720px)}
+svg{display:block;width:100%;height:auto;border-radius:14px;overflow:hidden}
+.sub{margin:0 0 8px;font-size:14px;color:var(--muted);font-style:italic}
+.dlg{background:var(--panel);border-radius:14px;padding:14px 18px;min-height:104px;box-sizing:border-box;cursor:pointer;margin-top:10px;border-left:4px solid var(--accent)}
+.name{font-weight:700;font-size:14px;margin-bottom:6px;font-family:ui-rounded,system-ui,sans-serif}
+.txt{font-size:19px;line-height:1.45}
+.ctl{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;font-family:ui-rounded,system-ui,sans-serif;font-size:15px;border:0;border-radius:999px;padding:9px 18px;background:var(--btn);color:var(--btn-text);cursor:pointer}
+button:focus-visible,.dlg:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.drop{stroke:#c3d4ea;stroke-width:1;opacity:.65;animation:fall .7s linear infinite}
+@keyframes fall{from{transform:translate(0,-40px)}to{transform:translate(-18px,260px)}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){.drop{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="sub">The night before the Riverside 10K, on the track where Daniel used to train.</p>
+  <svg id="st" viewBox="0 0 400 240" role="img" aria-label="An animated scene of two brothers talking on a running track at dusk. Daniel wears a running blade on his right leg.">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2145"/><stop offset=".55" stop-color="#7a4470"/><stop offset="1" stop-color="#ee9a62"/></linearGradient>
+      <linearGradient id="trk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8c4538"/><stop offset="1" stop-color="#5e2c28"/></linearGradient>
+    <pattern id="kente" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="#241d18"/><rect y="1" width="9" height="2" fill="#cdbf9b"/><rect y="5" width="9" height="2" fill="#3f6b52"/><rect x="3" y="3" width="2" height="2" fill="#8a6a43"/></pattern></defs>
+    <g id="cam">
+      <rect x="-160" y="-120" width="720" height="300" fill="url(#sky)"/>
+      <circle cx="200" cy="150" r="30" fill="#ffd8a0" opacity=".9"/>
+      <path d="M-160 170 V138 h30 v-10 h24 v20 h20 v-30 h26 v30 h30 v-16 h22 v26 h40 v-22 h28 v34 h30 v-14 h26 v28 h40 v-26 h30 v20 h26 v-34 h26 v40 h40 v-18 h40 v30 h50 V170 Z" fill="#1d1733"/>
+      <g fill="#2a2440"><rect x="40" y="70" width="3" height="100"/><rect x="38" y="64" width="14" height="8" fill="#ffe9b8"/><rect x="350" y="70" width="3" height="100"/><rect x="342" y="64" width="14" height="8" fill="#ffe9b8"/></g>
+      <rect x="-160" y="168" width="720" height="8" fill="#2f4a3a"/>
+      <rect x="-160" y="176" width="720" height="120" fill="url(#trk)"/>
+      <g stroke="#f0dcc8" stroke-opacity=".45" stroke-width="1.2"><path d="M-160 186H560M-160 202H560M-160 222H560M-160 246H560"/></g>
+      <g id="people"></g>
+    </g>
+    <rect id="dim" width="400" height="240" fill="#0a0d1c" opacity="0"/>
+    <g id="rain" opacity="0"></g>
+    <rect id="flash" width="400" height="240" fill="#fff" opacity="0"/>
+    <rect width="400" height="12" fill="#000" opacity=".85"/><rect y="228" width="400" height="12" fill="#000" opacity=".85"/>
+  </svg>
+  <div class="dlg" id="dlg" tabindex="0" role="button" aria-label="Next line"><div class="name" id="nm"></div><div class="txt" id="tx" aria-hidden="true"></div></div>
+  <div class="sr" id="live" aria-live="polite"></div>
+  <div class="ctl"><button id="next" type="button">Next</button><button id="auto" type="button">Pause</button><button id="rst" type="button">Restart</button></div>
+</div>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var NS='http://www.w3.org/2000/svg';
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var lerp=function(a,b,k){return a+(b-a)*k};
+
+  var LINES=[
+   {s:'M',e:'calm',o:'sad',t:'Two years since you set foot on this track. Mom says you drive past it every Sunday and never stop.'},
+   {s:'D',e:'sad',o:'calm',t:'Then Mom talks too much.'},
+   {s:'M',e:'calm',o:'sad',t:'I signed you up for the Riverside 10K. Saturday morning.'},
+   {s:'D',e:'angry',o:'calm',z:1.5,t:'You did what? Marcus, I never asked you to.'},
+   {s:'M',e:'calm',o:'angry',t:'You never would have.'},
+   {s:'D',e:'angry',o:'calm',z:1.6,rain:1,t:'Do you know how people look at me? The kids who point. The grown-ups who step aside like I’m made of glass.'},
+   {s:'M',e:'sad',o:'angry',t:'I know.'},
+   {s:'D',e:'angry',o:'sad',z:1.7,rain:1,flash:1,t:'No. You don’t. You still have two legs and a lot of opinions.'},
+   {s:'M',e:'sad',o:'angry',z:1.5,rain:1,t:'You’re right. I don’t know what it’s like. But I sat by that hospital bed and heard you say you would never run again.'},
+   {s:'D',e:'sad',o:'sad',z:1.7,rain:1,tear:1,t:'I was fast, Marcus. Now I’m a story people tell with sad eyes.'},
+   {s:'M',e:'hope',o:'sad',z:1.5,t:'You were never fast because of a leg. You were fast because you refused to quit. That part of you is still here.'},
+   {s:'D',e:'sad',o:'hope',z:1.7,tear:1,t:'What if I fall in front of everyone?'},
+   {s:'M',e:'hope',o:'sad',z:1.4,t:'Then you get up. You’ve been doing that for three years. Ask anyone who’s watched.'},
+   {s:'D',e:'hope',o:'hope',z:1.6,t:'Saturday. But I’m not doing it for them. I’m doing it for the kid who used to own this track.'},
+   {s:'M',e:'hope',o:'hope',z:1.1,t:'Then let’s get that kid some practice.'},
+   {s:'N',e:'hope',o:'hope',z:1,t:'Saturday morning, Daniel crossed the finish line at his own pace. The whole street was on its feet.'}
+  ];
+  var NAMES={M:'Marcus',D:'Daniel',N:''};
+  var POSE={calm:{a:-6,f:-14,t:0,sl:0,br:0,mc:1},angry:{a:-55,f:-42,t:-5,sl:0,br:1,mc:-1},sad:{a:4,f:6,t:12,sl:2.5,br:-1,mc:-2.5},hope:{a:-24,f:-8,t:-6,sl:-1,br:-.4,mc:2.2}};
+
+  function build(kind){
+    var d=kind==='D',skin=d?'#6a4330':'#c48b66',shirt='#3f6b5c',hair='#1d1713',mouthC=d?'#e0b09a':'#5a2a22';
+    var legs=d?
+      '<rect x="-14" y="-62" width="14" height="57" fill="#86a6a8"/><path d="M-10 -40 q3 4 0 9 M-6 -22 q3 3 1 7 M-11 -14 q4 2 6 0" stroke="#6e8f92" stroke-width="1.2" fill="none"/>'+
+      '<path d="M-19 0 C-19 -6 -13 -9 -5 -8 L2 -6 L2 0 Z" fill="#2f4f86"/><path d="M-6 -7.5 L2 -6 L2 0 L-10 0 Z" fill="#d8c7a6"/><rect x="-19" y="-2" width="21" height="2" fill="#f1ede4"/>'+
+      '<rect x="1" y="-62" width="15" height="31" fill="#86a6a8"/><rect x="0" y="-34" width="17" height="4" rx="2" fill="#6e8f92"/>'+
+      '<rect x="3" y="-30" width="11" height="15" rx="4.5" fill="#2b2f36"/><rect x="7.5" y="-16" width="2.2" height="8" fill="#c3c9d1"/>'+
+      '<path d="M8.6 -9 C8.6 0 12 2.5 27 1" fill="none" stroke="#14171c" stroke-width="4.6" stroke-linecap="round"/><path d="M9.4 -8 C9.6 -1 13 1.2 26 0" fill="none" stroke="#5a6272" stroke-width="1.1" stroke-linecap="round"/>':
+      '<rect x="-10" y="-60" width="9.5" height="56" fill="#262a33"/><rect x="0.5" y="-60" width="9.5" height="56" fill="#262a33"/><rect x="-12" y="-5" width="13" height="5" rx="2.5" fill="#d9d3c8"/><rect x="-1" y="-5" width="13" height="5" rx="2.5" fill="#d9d3c8"/>';
+    var torso=d?
+      '<rect x="-13" y="-66" width="26" height="8" rx="2" fill="#f4f2ec"/><rect x="-15" y="-102" width="30" height="40" rx="9" fill="url(#kente)"/><rect x="-6" y="-103" width="12" height="7" rx="2" fill="#f4f2ec"/><rect x="3" y="-88" width="7" height="3" rx="1" fill="#f2c230"/><path d="M-9 -101 L13 -63" stroke="#16110e" stroke-width="3.2"/><rect x="9" y="-75" width="11" height="17" rx="3.5" fill="#16110e"/>':
+      '<rect x="-12" y="-102" width="24" height="44" rx="8" fill="'+shirt+'"/>';
+    var arm=d?
+      '<rect x="-3.5" y="-3" width="7" height="19" rx="3.5" fill="'+skin+'"/><rect x="-5.2" y="-4" width="10.4" height="12" rx="4" fill="url(#kente)"/>':
+      '<rect x="-3" y="-3" width="7" height="19" rx="3.5" fill="'+shirt+'"/>';
+    var headTop=d?
+      '<path d="M-11.5 -10 C-11 4 8 6 12 -7 L12 -10 C9 -3 0 -2 -5 -8 Z" fill="#17110d"/>'+
+      '<path d="M-12.8 -15 C-13 -29 9 -30 12.8 -17 C7 -20 -4 -20 -12.8 -15 Z" fill="#ebe4d2"/><path d="M6 -19 Q17 -18 19 -14.5 Q12 -15.5 6 -15 Z" fill="#cfc7b0"/><path d="M-3 -24 l3 -2 l2 3 l3 -2" stroke="#2a2620" stroke-width="1.2" fill="none" stroke-linecap="round"/>':
+      '<path d="M-11.5 -14 C-12 -26 6 -28 11 -18 C5 -22 -3 -20 -6 -13 Z" fill="'+hair+'"/><path d="M-6 -3 C0 2 8 2 11 -5 L11 -8 C6 -2 -2 -2 -8 -8 Z" fill="'+hair+'" opacity=".8"/>';
+    var glasses=d?'<g fill="none" stroke="#0f0f12" stroke-width="1.5"><rect x="2" y="-17" width="5.2" height="5.2" rx="1.6"/><rect x="7.8" y="-17" width="5.2" height="5.2" rx="1.6"/><path d="M7.2 -15 h.6 M-9 -15 L2 -15"/></g>':'';
+    return '<ellipse cx="0" cy="1" rx="28" ry="3" fill="#000" opacity=".3"/>'+legs+
+      '<g class="tor">'+torso+
+      '<g class="arm">'+arm+'<g class="fore"><rect x="-3.4" y="14" width="7" height="17" rx="3" fill="'+skin+'"/>'+(d?'<rect x="-4" y="23" width="8" height="4.5" rx="1.5" fill="#15151a"/>':'')+'<circle cx="0" cy="33" r="4.2" fill="'+skin+'"/></g></g>'+
+      '<g class="head"><rect x="-4" y="-5" width="8" height="8" fill="'+skin+'"/><circle cx="0" cy="-13" r="12.5" fill="'+skin+'"/>'+headTop+
+      '<circle cx="4.5" cy="-14.4" r="1.4" fill="#17110d"/><circle cx="10" cy="-14.4" r="1.4" fill="#17110d"/>'+glasses+
+      '<line class="b1" x1="2.5" y1="-19.2" x2="6.5" y2="-19.2" stroke="'+hair+'" stroke-width="1.6" stroke-linecap="round"/><line class="b2" x1="8" y1="-19.2" x2="12" y2="-19.2" stroke="'+hair+'" stroke-width="1.6" stroke-linecap="round"/>'+
+      '<path class="mc" d="M4 -6 Q7 -5 10 -6" fill="none" stroke="'+mouthC+'" stroke-width="1.5" stroke-linecap="round"/><ellipse class="mo" cx="7" cy="-5.5" rx="2.3" ry="0" fill="#3a1713"/>'+
+      '<circle class="tear" cx="11" cy="-10" r="1.6" fill="#bfe2ff" opacity="0"/></g></g>';
+  }
+  var P={};
+  [['D',130,1],['M',272,-1]].forEach(function(c){
+    var g=document.createElementNS(NS,'g');g.setAttribute('transform','translate('+c[1]+' 214) scale('+c[2]+' 1)');
+    g.innerHTML=build(c[0]);$('people').appendChild(g);
+    P[c[0]]={x:c[1],g:g,tor:g.querySelector('.tor'),arm:g.querySelector('.arm'),fore:g.querySelector('.fore'),head:g.querySelector('.head'),
+      b1:g.querySelector('.b1'),b2:g.querySelector('.b2'),mc:g.querySelector('.mc'),mo:g.querySelector('.mo'),tear:g.querySelector('.tear'),
+      v:{a:-6,f:-14,t:0,sl:0,br:0,mc:1},tearY:0};
+  });
+  var rain=$('rain');
+  for(var i=0;i<70;i++){
+    var l=document.createElementNS(NS,'line'),x=Math.random()*440;
+    l.setAttribute('x1',x);l.setAttribute('y1',0);l.setAttribute('x2',x-3);l.setAttribute('y2',12);
+    l.setAttribute('class','drop');l.style.animationDelay=(-Math.random()*.7)+'s';rain.appendChild(l);
+  }
+
+  var idx=0,start=0,shown=0,auto=true,doneAt=0,zoom=1,fx=200,rainA=0,dimA=0,flash=0;
+  function go(n){
+    idx=Math.max(0,Math.min(LINES.length-1,n));start=performance.now();shown=0;doneAt=0;
+    var L=LINES[idx];$('nm').textContent=NAMES[L.s];$('tx').textContent='';$('live').textContent=(NAMES[L.s]?NAMES[L.s]+': ':'')+L.t;
+    if(L.flash&&!reduce)flash=.9;
+    if(L.tear)P.D.tearY=0;
+  }
+  function next(){
+    var L=LINES[idx];
+    if(shown<L.t.length){shown=L.t.length;return}
+    if(idx<LINES.length-1)go(idx+1);
+  }
+  $('next').onclick=next;$('dlg').onclick=next;
+  $('dlg').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();next()}});
+  $('auto').onclick=function(){auto=!auto;this.textContent=auto?'Pause':'Play'};
+  $('rst').onclick=function(){go(0)};
+
+  function frame(now){
+    var L=LINES[idx],len=L.t.length;
+    if(shown<len){shown=reduce?len:Math.min(len,(now-start)/32);if(shown>=len)doneAt=now}
+    $('tx').textContent=L.t.slice(0,Math.floor(shown));
+    var speaking=shown<len&&L.s!=='N';
+    if(shown>=len&&!doneAt)doneAt=now;
+    if(auto&&shown>=len&&idx<LINES.length-1&&now-doneAt>1700+len*12)go(idx+1);
+
+    var tz=reduce?1:(L.z||1),tf=L.s==='N'?200:(L.s==='D'?P.D.x:P.M.x);
+    if(tz===1)tf=200;
+    zoom=lerp(zoom,tz,.06);fx=lerp(fx,tf,.06);
+    $('cam').setAttribute('transform','translate(200 140) scale('+zoom.toFixed(3)+') translate('+(-fx).toFixed(1)+' -140)');
+    rainA=lerp(rainA,L.rain?1:0,.04);dimA=lerp(dimA,L.rain?.38:0,.04);flash=Math.max(0,flash-.03);
+    rain.setAttribute('opacity',(reduce?0:rainA).toFixed(2));$('dim').setAttribute('opacity',dimA.toFixed(2));$('flash').setAttribute('opacity',flash.toFixed(2));
+
+    ['D','M'].forEach(function(k){
+      var p=P[k],em=(L.s===k)?L.e:L.o,T=POSE[em]||POSE.calm,v=p.v,sp=speaking&&L.s===k;
+      for(var key in T)v[key]=lerp(v[key],T[key],.08);
+      var breath=reduce?0:Math.sin(now/700+(k==='D'?0:2))*.8;
+      var swing=sp&&!reduce?Math.sin(now/150)*(em==='angry'?14:8):0;
+      var bob=sp&&!reduce?Math.sin(now/110)*1.1:0;
+      p.tor.setAttribute('transform','translate(0 '+(v.sl+breath).toFixed(2)+')');
+      p.arm.setAttribute('transform','translate(0 -94) rotate('+v.a.toFixed(1)+')');
+      p.fore.setAttribute('transform','translate(0 14) rotate('+(v.f+swing).toFixed(1)+')');
+      p.head.setAttribute('transform','translate(0 -100) rotate('+(v.t+bob).toFixed(1)+' 0 0)');
+      p.b1.setAttribute('transform','rotate('+(v.br*18).toFixed(1)+' 4.5 -18.5)');
+      p.b2.setAttribute('transform','rotate('+(-v.br*18).toFixed(1)+' 9.5 -18.5)');
+      p.mc.setAttribute('d','M4 -6 Q7 '+(-6+v.mc).toFixed(2)+' 10 -6');
+      p.mo.setAttribute('ry',sp?(Math.max(0,Math.sin(now/75))*2.2).toFixed(2):'0');
+      var showTear=L.tear&&L.s==='D'&&k==='D'&&!reduce;
+      if(k==='D'){p.tearY=showTear?(p.tearY+.05)%7:0;p.tear.setAttribute('opacity',showTear?'.9':'0');p.tear.setAttribute('cy',(-10+p.tearY).toFixed(2))}
+    });
+    requestAnimationFrame(frame);
+  }
+  go(0);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

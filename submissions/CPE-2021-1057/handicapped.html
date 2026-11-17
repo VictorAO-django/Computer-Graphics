@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dramatic Conversation</title>
+<style>
+    :root {
+        --fg: #1f2a44;
+        --muted: #5b6b8c;
+    }
+    html, body {
+        margin: 0;
+        min-height: 100%;
+        background: linear-gradient(160deg, #eafcff 0%, #f3f0ff 55%, #fff7ea 100%);
+        color: var(--fg);
+        font-family: "Segoe UI", system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 28px 16px 34px;
+        box-sizing: border-box;
+    }
+    h1 { margin: 0; font-size: 1.45rem; font-weight: 800; letter-spacing: .2px; text-align: center; }
+    .stage {
+        width: 100%;
+        max-width: 880px;
+        border-radius: 22px;
+        overflow: hidden;
+        line-height: 0;
+        box-shadow: 0 2px 6px rgba(31,42,68,.08), 0 22px 46px -18px rgba(31,42,68,.35);
+    }
+    svg { width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+
+<h1>Dramatic Conversation</h1>
+
+<div class="stage">
+<svg id="scene" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="At dusk outside a village hut, a storyteller with one leg braces himself with a crutch while speaking with a friend. Speech bubbles show their exchange about grief, courage, and hope.">
+    <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#202b52"/>
+            <stop offset="62%" stop-color="#79617c"/>
+            <stop offset="100%" stop-color="#f2a574"/>
+        </linearGradient>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff6c2" stop-opacity=".65"/>
+            <stop offset="100%" stop-color="#fff6c2" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sunBody" cx="38%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#fffbe0"/>
+            <stop offset="55%" stop-color="#ffd35c"/>
+            <stop offset="100%" stop-color="#ffab2e"/>
+        </radialGradient>
+        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#795547"/>
+            <stop offset="100%" stop-color="#46353a"/>
+        </linearGradient>
+        <linearGradient id="shirtA" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#f5f7f8"/>
+            <stop offset="100%" stop-color="#d7dde1"/>
+        </linearGradient>
+        <linearGradient id="shirtB" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#e2793f"/>
+            <stop offset="100%" stop-color="#b85a28"/>
+        </linearGradient>
+        <clipPath id="headClipA">
+            <ellipse cx="0" cy="0" rx="52" ry="60"/>
+        </clipPath>
+    </defs>
+
+    <rect width="800" height="500" fill="url(#sky)"/>
+
+    <!-- sun, high and bright -->
+    <g transform="translate(680 86)">
+        <circle r="78" fill="url(#sunGlow)"/>
+        <g id="sunRays" stroke="#ffd35c" stroke-width="4" stroke-linecap="round" opacity=".8"></g>
+        <circle r="36" fill="url(#sunBody)"/>
+    </g>
+
+    <!-- drifting daytime clouds (puff technique) -->
+    <g id="cloudA" fill="#ffffff" opacity=".92"></g>
+    <g id="cloudB" fill="#ffffff" opacity=".85"></g>
+
+    <!-- distant hut -->
+    <g opacity=".95">
+        <rect x="654" y="352" width="86" height="60" fill="#d8b98a"/>
+        <path d="M646 354 L697 312 L748 354 Z" fill="#a85a3c"/>
+        <rect x="686" y="378" width="18" height="34" fill="#6b4a2e"/>
+    </g>
+
+    <!-- tree -->
+    <g opacity=".95">
+        <rect x="84" y="300" width="10" height="92" fill="#6b4a2e"/>
+        <ellipse cx="89" cy="282" rx="46" ry="38" fill="#5fa352"/>
+    </g>
+
+    <!-- ground -->
+    <rect x="0" y="412" width="800" height="88" fill="url(#ground)"/>
+    <ellipse cx="400" cy="415" rx="340" ry="16" fill="#211b28" opacity=".55"/>
+    <g stroke="#392c34" stroke-width="2" opacity=".65" stroke-linecap="round">
+        <path d="M60 440 q8 -6 16 0 M130 460 q8 -6 16 0 M700 445 q8 -6 16 0 M620 470 q8 -6 16 0"/>
+    </g>
+
+    <!-- ======================================================= -->
+    <!-- CHARACTER A: the storyteller -- one leg, a crutch under  -->
+    <!-- the right arm, left arm free for big dramatic gestures.  -->
+    <!-- ======================================================= -->
+    <g id="figA">
+        <ellipse cx="300" cy="417" rx="70" ry="12" fill="#2a1d10" opacity=".4"/>
+
+        <!-- crutch: pole from under the armpit to the ground, a
+             padded top and a handgrip partway down -->
+        <g id="crutch">
+            <line x1="330" y1="222" x2="338" y2="416" stroke="#8a6436" stroke-width="7" stroke-linecap="round"/>
+            <line x1="318" y1="220" x2="342" y2="220" stroke="#6b4b26" stroke-width="10" stroke-linecap="round"/>
+            <line x1="322" y1="312" x2="346" y2="308" stroke="#6b4b26" stroke-width="8" stroke-linecap="round"/>
+        </g>
+
+        <!-- intact leg -->
+        <g>
+            <path d="M286 300 L300 300 L298 356 L284 356 Z" fill="#2e4a6b"/>
+            <path d="M283 356 L299 356 L296 414 L282 414 Z" fill="#26405e"/>
+            <ellipse cx="286" cy="417" rx="18" ry="8" fill="#17110a"/>
+        </g>
+
+        <!-- stump: shorter, rolled trouser cuff at the end -->
+        <g>
+            <path d="M304 300 L320 300 L317 332 L306 332 Z" fill="#2e4a6b"/>
+            <ellipse cx="311" cy="333" rx="8" ry="6" fill="#1c3047"/>
+            <ellipse cx="311" cy="333" rx="8" ry="6" fill="none" stroke="#17273a" stroke-width="2"/>
+        </g>
+
+        <!-- torso / shirt -->
+        <path d="M270 222 Q300 206 332 222 L340 302 Q300 316 262 302 Z" fill="url(#shirtA)" stroke="#aeb6bb" stroke-width="2"/>
+        <!-- collar + buttons + pocket -->
+        <path d="M284 218 L300 246 L290 220 Z" fill="#fbfcfd"/>
+        <path d="M316 218 L300 246 L310 220 Z" fill="#fbfcfd"/>
+        <circle cx="300" cy="252" r="2.6" fill="#9aa3ab"/>
+        <circle cx="300" cy="268" r="2.6" fill="#9aa3ab"/>
+        <circle cx="300" cy="284" r="2.6" fill="#9aa3ab"/>
+        <rect x="272" y="252" width="16" height="12" rx="2.5" fill="#6b4b26" opacity=".85"/>
+
+        <!-- RIGHT ARM: braced on the crutch handgrip, kept mostly still --
+             drawn to land exactly on the handgrip at (334,312), not a
+             freely-swinging limb like the other arm. -->
+        <g id="shoulderAR" transform="translate(324 228)">
+            <path d="M-7 -3 L9 2 L13 48 L-1 52 Z" fill="url(#shirtA)" stroke="#aeb6bb" stroke-width="2"/>
+            <g id="elbowAR" transform="translate(7 49)">
+                <path d="M-6 0 L7 2 L9 35 L-3 37 Z" class="skin" stroke="#000" stroke-opacity=".12" stroke-width="1.5"/>
+                <g transform="translate(3 35)"><ellipse rx="10" ry="9" class="skin"/></g>
+            </g>
+        </g>
+
+        <!-- LEFT ARM: free, big dramatic gestures -->
+        <g id="shoulderAL" transform="translate(276 228)">
+            <path d="M0 0 Q-26 8 -32 44 L-14 50 Q-8 14 8 4 Z" fill="url(#shirtA)" stroke="#aeb6bb" stroke-width="2"/>
+            <g id="elbowAL" transform="translate(-32 44)">
+                <path d="M0 0 Q-20 14 -24 44 L-6 48 Q-4 20 12 8 Z" class="skin" stroke="#000" stroke-opacity=".12" stroke-width="1.5"/>
+                <g id="handAL" transform="translate(-24 44)">
+                    <ellipse rx="12" ry="11" class="skin"/>
+                    <path d="M-8 -6 q-4 -9 2 -12 M-1 -9 q-1 -10 4 -12 M6 -8 q1 -10 6 -9" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="2.2" stroke-linecap="round"/>
+                </g>
+            </g>
+        </g>
+
+        <!-- neck -->
+        <path d="M290 206 L310 206 L308 226 L292 226 Z" class="skin"/>
+
+        <!-- head: the storyteller's actual photo, cropped to the face
+             and clipped into the head oval -- the brows and mouth are
+             drawn illustration overlaid on top, in roughly the same
+             spots as the real ones, so the photo can still "talk". -->
+        <g id="headA" transform="translate(300 178)">
+            <image href="photo.jpeg" x="-362.9" y="-216.6" width="703" height="755.3" clip-path="url(#headClipA)"/>
+            <ellipse cx="0" cy="0" rx="52" ry="60" fill="none" stroke="#00000022" stroke-width="2"/>
+            <path id="browAL" d="M-30 -24 Q-18 -31 -5 -26" fill="none" stroke="#171210" stroke-width="4.5" stroke-linecap="round" opacity=".85"/>
+            <path id="browAR" d="M30 -24 Q18 -31 5 -26" fill="none" stroke="#171210" stroke-width="4.5" stroke-linecap="round" opacity=".85"/>
+            <g id="mouthGroupA" transform="translate(-2 36)">
+                <rect id="mouthA" x="-15" y="-4" width="30" height="8" rx="3" fill="#3a1410"/>
+                <rect x="-12" y="-4" width="24" height="3" fill="#fdf6ee" opacity=".9"/>
+            </g>
+        </g>
+    </g>
+
+    <!-- ======================================================= -->
+    <!-- CHARACTER B: the listener, standing, reacting            -->
+    <!-- ======================================================= -->
+    <g id="figB">
+        <ellipse cx="520" cy="417" rx="66" ry="12" fill="#2a1d10" opacity=".4"/>
+
+        <!-- two ordinary legs -->
+        <path d="M498 300 L514 300 L512 356 L496 356 Z" fill="#3a2f28"/>
+        <path d="M495 356 L513 356 L510 414 L493 414 Z" fill="#30271f"/>
+        <ellipse cx="497" cy="417" rx="17" ry="8" fill="#17110a"/>
+        <path d="M526 300 L542 300 L544 356 L528 356 Z" fill="#3a2f28"/>
+        <path d="M527 356 L545 356 L548 414 L531 414 Z" fill="#30271f"/>
+        <ellipse cx="543" cy="417" rx="17" ry="8" fill="#17110a"/>
+
+        <!-- torso / shirt -->
+        <path d="M490 222 Q520 206 552 222 L560 302 Q520 316 482 302 Z" fill="url(#shirtB)" stroke="#8a431f" stroke-width="2"/>
+        <circle cx="520" cy="252" r="2.6" fill="#f2cfa8"/>
+        <circle cx="520" cy="268" r="2.6" fill="#f2cfa8"/>
+
+        <!-- right arm: relaxed at the side -->
+        <g id="shoulderBR" transform="translate(544 228)">
+            <path d="M0 0 Q20 10 20 44 L4 48 Q2 16 -8 6 Z" fill="url(#shirtB)" stroke="#8a431f" stroke-width="2"/>
+            <g transform="translate(20 44)"><ellipse rx="11" ry="10" class="skin"/></g>
+        </g>
+
+        <!-- left arm: hand resting near the chin, listening -->
+        <g id="shoulderBL" transform="translate(496 228)">
+            <path d="M0 0 Q-22 4 -26 30 L-10 36 Q-6 12 8 4 Z" fill="url(#shirtB)" stroke="#8a431f" stroke-width="2"/>
+            <g id="elbowBL" transform="translate(-26 30)">
+                <path d="M0 0 Q4 -16 24 -22 L28 -8 Q12 -4 8 10 Z" class="skin" stroke="#000" stroke-opacity=".12" stroke-width="1.5"/>
+                <g transform="translate(28 -8)"><ellipse rx="11" ry="10" class="skin"/></g>
+            </g>
+        </g>
+
+        <!-- neck -->
+        <path d="M510 206 L530 206 L528 226 L512 226 Z" class="skin"/>
+
+        <!-- head -->
+        <g id="headB" transform="translate(520 178)">
+            <ellipse cx="-46" cy="6" rx="8" ry="12" class="skin"/>
+            <ellipse cx="46" cy="6" rx="8" ry="12" class="skin"/>
+            <ellipse cx="0" cy="0" rx="48" ry="55" class="skin"/>
+            <path d="M-48 -8 Q-50 -48 0 -56 Q50 -48 48 -8 Q50 20 38 30 Q44 -4 0 -10 Q-44 -4 -38 30 Q-50 20 -48 -8 Z" fill="#241a12"/>
+            <path id="browBL" d="M-31 -13 Q-19 -19 -6 -14" fill="none" stroke="#241a12" stroke-width="4" stroke-linecap="round"/>
+            <path id="browBR" d="M31 -13 Q19 -19 6 -14" fill="none" stroke="#241a12" stroke-width="4" stroke-linecap="round"/>
+            <g id="eyeBL" transform="translate(-18 0)">
+                <ellipse rx="10" ry="7.5" fill="#fdf6ee"/>
+                <g class="pupil"><circle r="4.6" fill="#2a1a10"/></g>
+                <path class="lid" d="M-10 -8 H10 V-7 H-10 Z" class="skin"/>
+            </g>
+            <g id="eyeBR" transform="translate(18 0)">
+                <ellipse rx="10" ry="7.5" fill="#fdf6ee"/>
+                <g class="pupil"><circle r="4.6" fill="#2a1a10"/></g>
+                <path class="lid" d="M-10 -8 H10 V-7 H-10 Z" class="skin"/>
+            </g>
+            <path d="M-3 4 Q-6 16 0 19 Q6 16 3 4" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="2.2" stroke-linecap="round"/>
+            <path id="mouthB" d="M-9 30 Q0 36 9 30" fill="none" stroke="#3a2416" stroke-width="2.6" stroke-linecap="round"/>
+        </g>
+    </g>
+
+    <!-- The speech bubbles trade focus as each person takes a turn. -->
+    <g id="bubbleA" opacity="1">
+        <path d="M286 97 L300 112 L314 97 Z" fill="#fff8ed" stroke="#754f49" stroke-width="2"/>
+        <rect x="64" y="25" width="360" height="76" rx="16" fill="#fff8ed" stroke="#754f49" stroke-width="2"/>
+        <text x="82" y="49" fill="#8a4b3b" font-size="12" font-weight="700" letter-spacing="1">STORYTELLER</text>
+        <text id="lineA" x="82" y="75" fill="#29283d" font-size="16" font-weight="600">I thought my future ended that day...</text>
+    </g>
+    <g id="bubbleB" opacity="0">
+        <path d="M516 97 L530 112 L544 97 Z" fill="#f3f5ff" stroke="#4c5374" stroke-width="2"/>
+        <rect x="444" y="25" width="310" height="76" rx="16" fill="#f3f5ff" stroke="#4c5374" stroke-width="2"/>
+        <text x="462" y="49" fill="#555b83" font-size="12" font-weight="700" letter-spacing="1">FRIEND</text>
+        <text id="lineB" x="462" y="75" fill="#29283d" font-size="16" font-weight="600">You still have a voice. I'm here.</text>
+    </g>
+</svg>
+</div>
+
+<style>
+    #scene .skin { fill: #7a5234; }
+</style>
+
+<script>
+(function () {
+    var svg = document.getElementById("scene");
+    var $ = function (id) { return document.getElementById(id); };
+
+    /* ---- character A: the storyteller (real photo for the face,
+     * so only the brows/mouth overlay animate -- no drawn eyes to
+     * blink or track) ---- */
+    var headA = $("headA"), mouthA = $("mouthA");
+    var browAL = $("browAL"), browAR = $("browAR");
+    var shoulderAL = $("shoulderAL"), elbowAL = $("elbowAL");
+    var shoulderAR = $("shoulderAR"), elbowAR = $("elbowAR");
+    var figA = $("figA");
+
+    /* ---- character B: the listener ---- */
+    var headB = $("headB"), mouthB = $("mouthB");
+    var bubbleA = $("bubbleA"), bubbleB = $("bubbleB");
+    var lineA = $("lineA"), lineB = $("lineB");
+    var pupilsB = $("figB").querySelectorAll(".pupil");
+    var lidsB = $("figB").querySelectorAll(".lid");
+    var figB = $("figB");
+
+    function buildCloud(group, puffs) {
+        puffs.forEach(function (p) {
+            var c = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+            c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]);
+            c.setAttribute("rx", p[2]); c.setAttribute("ry", p[3]);
+            group.appendChild(c);
+        });
+    }
+    buildCloud($("cloudA"), [[0, 0, 40, 16], [-28, 4, 26, 12], [26, 5, 24, 11]]);
+    buildCloud($("cloudB"), [[0, 0, 30, 13], [-20, 4, 18, 9], [18, 4, 20, 9]]);
+
+    var raysGroup = $("sunRays");
+    var RAY_COUNT = 10;
+    for (var r = 0; r < RAY_COUNT; r++) {
+        var ang = (r / RAY_COUNT) * Math.PI * 2;
+        var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", (Math.cos(ang) * 44).toFixed(1));
+        line.setAttribute("y1", (Math.sin(ang) * 44).toFixed(1));
+        line.setAttribute("x2", (Math.cos(ang) * 60).toFixed(1));
+        line.setAttribute("y2", (Math.sin(ang) * 60).toFixed(1));
+        raysGroup.appendChild(line);
+    }
+
+    var motionOk = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    var last = null, clock = 0;
+    var blinkTB = 1.4, blinkB = 0;
+
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+    function frame(now) {
+        if (last === null) last = now;
+        var dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        if (motionOk) { clock += dt; step(dt); }
+        requestAnimationFrame(frame);
+    }
+
+    function step(dt) {
+        // drifting daytime clouds + a slowly turning sun
+        $("cloudA").setAttribute("transform", "translate(" + ((clock * 6) % 960 - 120).toFixed(1) + " 70)");
+        $("cloudB").setAttribute("transform", "translate(" + ((clock * 4 + 400) % 960 - 120).toFixed(1) + " 110)");
+        $("sunRays").setAttribute("transform", "rotate(" + (clock * 2.2).toFixed(1) + ")");
+
+        var beat = clock % 18;
+        var talkingA = beat < 4.5 || (beat >= 9 && beat < 13.5);
+        bubbleA.setAttribute("opacity", talkingA ? "1" : "0");
+        bubbleB.setAttribute("opacity", talkingA ? "0" : "1");
+        lineA.textContent = beat < 9 ? "I thought my future ended that day..." : "Then hear me: I'm not finished.";
+        lineB.textContent = beat < 9 ? "You still have a voice. I'm here." : "Then tell me what comes next.";
+
+        /* ---- A speaks in defined turns, with emphasis in the arms,
+         * big out-of-sync arm swings, slight balance sway on the
+         * crutch (the whole figure rocks a couple of degrees). ---- */
+        var talk = talkingA ? Math.max(0, Math.sin(clock * 9) * 0.6 + Math.sin(clock * 13.7) * 0.4) : 0;
+        mouthA.setAttribute("height", (8 + talk * 20).toFixed(1));
+        mouthA.setAttribute("y", (-4 - talk * 10).toFixed(1));
+
+        var tiltA = Math.sin(clock * 1.1 + 1) * 7;
+        headA.setAttribute("transform", "translate(300 " + (178 + Math.sin(clock * 1.6) * 2) + ") rotate(" + tiltA.toFixed(1) + ")");
+
+        var browLiftA = Math.sin(clock * 2.3) * 4 + Math.max(0, Math.sin(clock * 5.2)) * 6;
+        browAL.setAttribute("transform", "translate(0 " + (-browLiftA).toFixed(1) + ")");
+        browAR.setAttribute("transform", "translate(0 " + (-browLiftA).toFixed(1) + ")");
+
+        // the free (left) arm throws big storytelling gestures
+        var sAL = Math.sin(clock * 1.3) * 42 - 20;
+        shoulderAL.setAttribute("transform", "translate(276 228) rotate(" + sAL.toFixed(1) + ")");
+        var eAL = Math.max(0, Math.sin(clock * 2.1 + 0.6)) * 50;
+        elbowAL.setAttribute("transform", "translate(-32 44) rotate(" + (-eAL).toFixed(1) + ")");
+
+        // the crutch arm barely moves -- it's braced, just a small breathing sway
+        var sAR = Math.sin(clock * 1.1) * 4;
+        shoulderAR.setAttribute("transform", "translate(324 228) rotate(" + sAR.toFixed(1) + ")");
+
+        // the whole figure rocks slightly as he balances on the crutch
+        figA.setAttribute("transform", "rotate(" + (Math.sin(clock * 1.1) * 2).toFixed(1) + " 300 416)");
+
+        /* ---- B listens: slower head nod, occasional blink, gentle
+         * idle sway -- deliberately calmer than A so the contrast
+         * reads as "one is performing, one is reacting." ---- */
+        var nodB = Math.max(0, Math.sin(clock * 1.7 + 2)) * 10;
+        headB.setAttribute("transform", "translate(520 " + (178 + nodB * 0.3).toFixed(1) + ") rotate(" + (nodB * 0.6 - 3).toFixed(1) + ")");
+        var talkB = talkingA ? 0 : Math.max(0, Math.sin(clock * 8 + 1) * 0.6 + Math.sin(clock * 12.5) * 0.4);
+        mouthB.setAttribute("d", talkB > 0.12
+            ? "M-9 30 Q0 " + (36 + talkB * 10).toFixed(1) + " 9 30 Q0 " + (31 - talkB * 2).toFixed(1) + " -9 30 Z"
+            : "M-9 30 Q0 36 9 30");
+
+        blinkTB -= dt;
+        if (blinkTB < 0) { blinkB = 0.14; blinkTB = 1.6 + Math.random() * 2.6; }
+        var closedB = 0;
+        if (blinkB > 0) { blinkB -= dt; closedB = Math.sin(clamp(blinkB / 0.14, 0, 1) * Math.PI); }
+        var lidHB = closedB * 15;
+        for (var k = 0; k < lidsB.length; k++) lidsB[k].setAttribute("d", "M-10 -8 H10 V" + (-8 + lidHB).toFixed(1) + " H-10 Z");
+
+        figB.setAttribute("transform", "rotate(" + (Math.sin(clock * 0.8 + 1) * 1.4).toFixed(1) + " 520 416)");
+    }
+
+    step(0.016);
+    requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

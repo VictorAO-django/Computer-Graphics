@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cat and Mouse</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;display:grid;place-items:center;overflow:hidden;
+  background:#ead4b9;
+}
+.scene{
+  position:relative;width:min(94vw,760px);height:min(82vh,570px);min-height:420px;
+  overflow:hidden;border-radius:24px;
+  background:linear-gradient(to bottom,#f7e8d4 0%,#f1ddc4 68%,#c99e76 68%,#b9855e 100%);
+  box-shadow:0 20px 55px #5d3b292b;
+}
+.floor{
+  position:absolute;left:0;right:0;bottom:0;height:32%;
+  background:repeating-linear-gradient(0deg,transparent 0 36px,#9e704d18 37px 39px),
+             linear-gradient(#c99b73,#b9845c);
+}
+.cat{
+  position:absolute;width:260px;height:285px;left:50%;top:43%;
+  transform:translate(-50%,-50%);z-index:2;
+}
+.tail{
+  position:absolute;width:112px;height:76px;right:-30px;bottom:8px;
+  border:17px solid #b96f43;border-left-color:transparent;border-bottom-color:transparent;
+  border-radius:50%;transform:rotate(25deg);animation:tail 2.8s ease-in-out infinite;
+}
+@keyframes tail{0%,100%{transform:rotate(20deg)}50%{transform:rotate(38deg)}}
+.body{
+  position:absolute;width:178px;height:145px;left:42px;bottom:0;border-radius:48% 48% 38% 38%;
+  background:linear-gradient(135deg,#e9a56c,#c97849);
+  box-shadow:inset -12px -9px 0 #a85d3b22;
+}
+.belly{position:absolute;width:90px;height:90px;border-radius:50%;background:#f8d6ad;left:45px;bottom:7px}
+.head{
+  position:absolute;width:178px;height:158px;left:42px;top:20px;border-radius:48% 48% 45% 45%;
+  background:linear-gradient(145deg,#f2b47e,#c9794d);box-shadow:inset -8px -8px 0 #9d573722;
+}
+.ear{
+  position:absolute;top:-19px;width:62px;height:76px;background:#c9794d;
+  border-radius:18px 48px 10px 10px;clip-path:polygon(50% 0,100% 100%,0 100%);
+}
+.ear:after{
+  content:"";position:absolute;inset:22px 14px 8px;background:#e98e83;
+  clip-path:polygon(50% 0,100% 100%,0 100%);
+}
+.ear.left{left:5px;transform:rotate(-17deg)}
+.ear.right{right:5px;transform:scaleX(-1) rotate(-17deg)}
+.eye{position:absolute;top:62px;width:25px;height:31px;border-radius:50%;background:#fff9e9;overflow:hidden}
+.eye.left{left:42px}.eye.right{right:42px}
+.pupil{
+  position:absolute;width:11px;height:20px;border-radius:50%;background:#344b36;
+  left:7px;top:6px;animation:look 3s ease-in-out infinite;
+}
+@keyframes look{0%,100%{transform:translate(0,0)}25%{transform:translate(4px,2px)}50%{transform:translate(-3px,3px)}75%{transform:translate(3px,-1px)}}
+.nose{position:absolute;top:105px;left:83px;width:13px;height:10px;background:#a94e59;border-radius:45% 45% 60% 60%}
+.mouth{position:absolute;top:113px;left:80px;width:20px;height:12px;border-bottom:2px solid #704333;border-radius:50%}
+.whiskers{position:absolute;top:112px;width:48px;height:22px;border-top:1.5px solid #704333}
+.whiskers.left{left:0;transform:rotate(8deg)}.whiskers.right{right:0;transform:rotate(-8deg)}
+.whiskers:after{content:"";position:absolute;top:8px;width:45px;border-top:1.5px solid #704333}
+
+/* The mouse travels around the cat's feet, on the floor plane. */
+.mouse-path{
+  position:absolute;z-index:4;left:50%;bottom:7%;
+  width:340px;height:100px;transform:translateX(-50%);
+  animation:run-around 7s linear infinite;
+}
+@keyframes run-around{
+  0%{transform:translateX(-50%) translateX(-155px) scale(.78)}
+  25%{transform:translateX(-50%) translateX(0) scale(1)}
+  50%{transform:translateX(-50%) translateX(155px) scale(.78)}
+  75%{transform:translateX(-50%) translateX(0) scale(.68)}
+  100%{transform:translateX(-50%) translateX(-155px) scale(.78)}
+}
+.mouse{
+  position:absolute;left:50%;bottom:0;width:58px;height:36px;
+  transform:translateX(-50%);animation:scurry .16s ease-in-out infinite alternate;
+}
+@keyframes scurry{from{margin-bottom:0}to{margin-bottom:4px}}
+.mouse-body{
+  position:absolute;width:39px;height:25px;left:10px;bottom:0;
+  background:#858b96;border-radius:55% 50% 45% 55%;
+  box-shadow:inset -5px -3px 0 #62687533;
+}
+.mouse-ear{position:absolute;width:17px;height:17px;top:0;background:#aeb2bc;border:3px solid #858a95;border-radius:50%}
+.mouse-ear.one{left:12px}.mouse-ear.two{left:29px}
+.mouse-eye{position:absolute;width:4px;height:4px;border-radius:50%;background:#292d35;left:41px;top:17px}
+.mouse-nose{position:absolute;width:5px;height:5px;border-radius:50%;background:#e58b9b;left:48px;top:22px}
+.mouse-tail{
+  position:absolute;width:30px;height:19px;left:-10px;bottom:1px;
+  border-bottom:2px solid #b96e75;border-radius:50%;transform:rotate(-22deg);
+}
+@media(max-width:480px){
+  .cat{transform:translate(-50%,-50%) scale(.78)}
+  .mouse-path{width:280px}
+  @keyframes run-around{
+    0%{transform:translateX(-50%) translateX(-120px) scale(.78)}
+    25%{transform:translateX(-50%) translateX(0) scale(1)}
+    50%{transform:translateX(-50%) translateX(120px) scale(.78)}
+    75%{transform:translateX(-50%) translateX(0) scale(.68)}
+    100%{transform:translateX(-50%) translateX(-120px) scale(.78)}
+  }
+}
+</style>
+</head>
+<body>
+<main class="scene" aria-label="A cat watching a mouse scurry around on the floor">
+  <div class="floor"></div>
+  <div class="cat">
+    <div class="tail"></div>
+    <div class="body"><div class="belly"></div></div>
+    <div class="head">
+      <div class="ear left"></div><div class="ear right"></div>
+      <div class="eye left"><div class="pupil"></div></div>
+      <div class="eye right"><div class="pupil"></div></div>
+      <div class="whiskers left"></div><div class="whiskers right"></div>
+      <div class="nose"></div><div class="mouth"></div>
+    </div>
+  </div>
+  <div class="mouse-path">
+    <div class="mouse">
+      <div class="mouse-tail"></div>
+      <div class="mouse-ear one"></div><div class="mouse-ear two"></div>
+      <div class="mouse-body"></div><div class="mouse-eye"></div><div class="mouse-nose"></div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

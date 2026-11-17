@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotating Car</title>
+<style>
+    :root {
+        --fg: #1f2a44;
+        --muted: #5b6b8c;
+    }
+    html, body {
+        margin: 0;
+        min-height: 100%;
+        background: linear-gradient(160deg, #eafcff 0%, #f3f0ff 55%, #fff7ea 100%);
+        color: var(--fg);
+        font-family: "Segoe UI", system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 28px 16px 34px;
+        box-sizing: border-box;
+    }
+    h1 { margin: 0; font-size: 1.45rem; font-weight: 800; letter-spacing: .2px; text-align: center; }
+    p.caption { margin: 0; color: var(--muted); font-size: .88rem; text-align: center; max-width: 60ch; }
+
+    /* ---- the turntable stage: one fixed camera (the perspective lives
+     * here), the car spinning in place in the middle of the frame. ---- */
+    .stage {
+        --k: 1;
+        position: relative;
+        width: 100%;
+        max-width: 820px;
+        aspect-ratio: 820 / 520;
+        border-radius: 22px;
+        overflow: hidden;
+        background: radial-gradient(ellipse at 50% 42%, #fef9ee 0%, #e7e0cf 72%, #d8cfb8 100%);
+        box-shadow: 0 2px 6px rgba(31,42,68,.08), 0 22px 46px -18px rgba(31,42,68,.35);
+        perspective: calc(1250px * var(--k));
+    }
+    .node { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+    /* the whole rig's origin sits on the turntable surface; this shift
+     * lifts the car's visual middle up into the center of the frame.
+     * (declared after .node so its left/top win the cascade) */
+    .rig {
+        left: 50%; top: calc(50% + 46px * var(--k));
+        transform: rotateX(-15deg) scale(var(--k));
+    }
+    .panel { position: absolute; }
+    .turning {
+        animation: turn 9s linear infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .turning { animation-duration: 54s; }
+    }
+    @keyframes turn {
+        from { transform: rotateY(0deg); }
+        to   { transform: rotateY(360deg); }
+    }
+</style>
+</head>
+<body>
+
+<h1>Rotating Car</h1>
+
+<div class="stage" id="stage" role="img" aria-label="A teal SUV turning slowly in place on a turntable, like a showroom display">
+    <div class="node rig" id="rig">
+        <div class="node" id="platform"></div>
+        <div class="node turning" id="carGroup"></div>
+    </div>
+</div>
+
+<p class="caption">The car never travels anywhere &mdash; it only turns on the spot, about its own vertical axis.</p>
+
+<script>
+(function () {
+    var stage = document.getElementById("stage");
+    var platform = document.getElementById("platform");
+    var carGroup = document.getElementById("carGroup");
+
+    /* ---- tiny DOM helpers ------------------------------------------- */
+    function node(parent, tf) {
+        var el = document.createElement("div");
+        el.className = "node";
+        if (tf) el.style.transform = tf;
+        parent.appendChild(el);
+        return el;
+    }
+    function panel(parent, w, h, tf, fill, extra) {
+        var el = document.createElement("div");
+        el.className = "panel";
+        el.style.width = w + "px";
+        el.style.height = h + "px";
+        el.style.left = (-w / 2) + "px";
+        el.style.top = (-h / 2) + "px";
+        el.style.transform = tf;
+        el.style.background = fill;
+        if (extra) for (var prop in extra) el.style[prop] = extra[prop];
+        parent.appendChild(el);
+        return el;
+    }
+    var SHEEN = "linear-gradient(rgba(255,255,255,.18),rgba(0,0,0,.08)),";
+
+    /* a flat-color face generator: lighten/darken a base HSL color by a
+     * fixed delta, used so every face of a box reads as a slightly
+     * different shade without hand-picking six colors each time. */
+    function shader(h, s, l) {
+        return function (delta) { return "hsl(" + h + " " + s + "% " + Math.max(4, Math.min(97, l + delta)) + "%)"; };
+    }
+
+    /* a rectangular block made of 6 panels. x = toward the car's nose,
+     * y = downward, z = sideways (left/right). */
+    function cuboid(parent, w, h, d, x, y, z, shade) {
+        var box = node(parent, "translate3d(" + x + "px," + y + "px," + z + "px)");
+        panel(box, w, h, "translateZ(" + d / 2 + "px)", SHEEN + shade(0));
+        panel(box, w, h, "rotateY(180deg) translateZ(" + d / 2 + "px)", SHEEN + shade(-12));
+        panel(box, d, h, "rotateY(90deg) translateZ(" + w / 2 + "px)", SHEEN + shade(-5));
+        panel(box, d, h, "rotateY(-90deg) translateZ(" + w / 2 + "px)", SHEEN + shade(-16));
+        panel(box, w, d, "rotateX(90deg) translateZ(" + h / 2 + "px)", SHEEN + shade(8));
+        panel(box, w, d, "rotateX(-90deg) translateZ(" + h / 2 + "px)", shade(-32));
+        return box;
+    }
+
+    /* ---- the turntable platform: three stacked discs for a bit of
+     * thickness, plus a soft contact shadow under the car. ---- */
+    [0, 1, 2].forEach(function (i) {
+        panel(platform, 430, 430, "translateY(" + (6 + i * 3) + "px) rotateX(90deg)",
+            i === 2 ? "#746a59" : "#8d8270", { borderRadius: "50%" });
+    });
+    panel(platform, 420, 420, "translateY(3px) rotateX(90deg)",
+        "repeating-conic-gradient(#c9bfa8 0 9deg, #d9d0ba 9deg 18deg)", { borderRadius: "50%" });
+    panel(platform, 330, 170, "translateY(1px) rotateX(90deg)",
+        "radial-gradient(ellipse at center, rgba(20,24,20,.5) 0%, rgba(20,24,20,.26) 48%, rgba(20,24,20,0) 74%)");
+
+    /* ---- car palette: a cool teal body with a cream cabin/roofline,
+     * so it reads differently from a typical red sports car at a glance. ---- */
+    var body = shader(172, 46, 34);     // deep teal
+    var cabin = shader(42, 38, 92);     // warm cream
+    var trim = shader(210, 8, 22);      // near-black gunmetal
+    var chrome = shader(210, 10, 74);
+
+    cuboid(carGroup, 300, 46, 150, 0, -56, 0, body);          // main body
+    cuboid(carGroup, 150, 54, 128, -6, -108, 0, cabin);       // cabin / greenhouse
+
+    // roof rails -- a pair of slim bars along the top, an SUV detail
+    cuboid(carGroup, 120, 6, 6, -6, -138, 58, trim);
+    cuboid(carGroup, 120, 6, 6, -6, -138, -58, trim);
+
+    // glass: side windows (clipped to a trapezoid) + wrap-around front/rear
+    var glassSide = "linear-gradient(165deg,#eafcff 0%,#6fd3e0 42%,#1c5f6e 100%)";
+    var glassEnd = "linear-gradient(180deg,#f2feff 0%,#7fd8e2 48%,#24697a 100%)";
+    var pillarClip = { clipPath: "polygon(0 100%, 24% 0, 70% 0, 100% 100%)" };
+    panel(carGroup, 150, 40, "translate3d(-6px,-88px,64px)", glassSide, pillarClip);
+    panel(carGroup, 150, 40, "translate3d(-6px,-88px,-64px)", glassSide, pillarClip);
+    panel(carGroup, 110, 62, "translate3d(63px,-88px,0px) rotateZ(-56deg) rotateY(90deg)", glassEnd);
+    panel(carGroup, 110, 52, "translate3d(-69px,-88px,0px) rotateZ(46deg) rotateY(90deg)", glassEnd);
+
+    // bumpers, grille, plate, lights
+    cuboid(carGroup, 10, 14, 150, 153, -36, 0, chrome);
+    cuboid(carGroup, 10, 14, 150, -153, -36, 0, chrome);
+    cuboid(carGroup, 4, 10, 54, 150, -58, 0, trim);
+
+    var amber = shader(42, 92, 60), ruby = shader(352, 72, 46);
+    [1, -1].forEach(function (s) {
+        panel(carGroup, 26, 12, "translate3d(148px,-46px," + (s * 48) + "px)", amber(0), { borderRadius: "40%" });
+        panel(carGroup, 22, 10, "translate3d(-148px,-46px," + (s * 50) + "px)", ruby(0), { borderRadius: "40%" });
+    });
+
+    // mirrors
+    cuboid(carGroup, 8, 6, 10, 72, -78, 68, body);
+    cuboid(carGroup, 8, 6, 10, 72, -78, -68, body);
+
+    // wheel arches + a thin door crease, left and right sides
+    [1, -1].forEach(function (s) {
+        [94, -94].forEach(function (ax) {
+            panel(carGroup, 70, 70, "translate3d(" + ax + "px,-34px," + (s * 72) + "px)", "hsl(210 8% 10%)", { borderRadius: "50%" });
+        });
+        panel(carGroup, 150, 2, "translate3d(0px,-50px," + (s * 75.4) + "px)", "hsl(210 10% 16%)");
+    });
+
+    /* ---- wheels: a 12-sided prism (tire) with a gunmetal rim and a
+     * small brass center cap on each outer face. ---- */
+    function wheel(x, z) {
+        var R = 32, T = 24, N = 12;
+        var w = node(carGroup, "translate3d(" + x + "px," + (-R) + "px," + z + "px)");
+        var chordLen = 2 * R * Math.tan(Math.PI / N) + 1;
+        for (var i = 0; i < N; i++) {
+            panel(w, chordLen, T, "rotateZ(" + (i * 360 / N) + "deg) translateY(" + (-R) + "px) rotateX(90deg)",
+                i % 2 ? "hsl(210 10% 15%)" : "hsl(210 10% 10%)");
+        }
+        [1, -1].forEach(function (s) {
+            panel(w, 2 * R, 2 * R, "translateZ(" + (s * T / 2) + "px)", "hsl(210 10% 11%)", { borderRadius: "50%" });
+            panel(w, 2 * R * 0.66, 2 * R * 0.66, "translateZ(" + (s * (T / 2 + 1.4)) + "px)",
+                "radial-gradient(circle, #e9c46a 0 18%, transparent 19%), repeating-conic-gradient(#cfd6de 0 18deg, #99a2ad 18deg 36deg)",
+                { borderRadius: "50%", boxShadow: "0 0 0 3px #b9c0c9 inset" });
+        });
+        return w;
+    }
+    wheel(94, 76); wheel(94, -76); wheel(-94, 76); wheel(-94, -76);
+
+    /* ---- scale the fixed-size rig to whatever width the stage ends up
+     * with, so the model stays crisp at any screen size. ---- */
+    function syncScale() {
+        stage.style.setProperty("--k", (stage.clientWidth / 820).toFixed(4));
+    }
+    syncScale();
+    window.addEventListener("resize", syncScale);
+    if (window.ResizeObserver) new ResizeObserver(syncScale).observe(stage);
+})();
+</script>
+</body>
+</html>

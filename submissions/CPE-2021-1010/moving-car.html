@@ -1,171 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Moving Car</title>
-<style>
-  html, body { margin: 0; height: 100%; background: #0e1116; display: flex; align-items: center; justify-content: center; }
-  canvas { max-width: 100%; height: auto; border: 1px solid #2a3140; }
-</style>
+    <meta charset="UTF-8">
+    <title>Moving Car - Stylized</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #111; }
+        canvas { border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border-radius: 8px; }
+    </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<script>
-/* ===================== EDIT ONLY THIS OBJECT =====================
-   canvasWidth / canvasHeight : canvas size in pixels
-   DIRECTION        : 1 = left-to-right, -1 = right-to-left
-   SPEED            : pixels per frame, always positive (DIRECTION gives the sign)
-   bodyColor        : car body color
-   cabinColor       : cabin / roof color
-   windowColor      : window glass color
-   wheelColor       : tire color
-   hubColor         : wheel hub / spoke color
-   lightColor       : headlight color
-   roadColor        : road surface color
-   laneColor        : dashed center-line color
-   backgroundColor  : sky color
-   roadTop          : y position where the road starts
-   roadHeight       : road thickness in pixels
-   laneDashWidth/Height/Gap : dashed lane marking geometry
-   carWidth/carHeight       : body size (cabin and wheels scale from these)
-   cabinWidthRatio  : cabin width as a fraction of carWidth
-   cabinHeightRatio : cabin height as a fraction of carHeight
-   cabinOffsetRatio : how far the cabin sits back from the car's centre (fraction of carWidth)
-   wheelRadius      : wheel radius in pixels
-   wheelInsetRatio  : wheel centre distance from car end (fraction of carWidth)
-   spokeCount       : spokes per wheel
-   hubRatio         : hub size as a fraction of wheelRadius
-   spokeLineWidth   : spoke thickness
-   windowInset      : gap between cabin edge and window
-   lightSize        : headlight width/height
-   startX           : "offscreen" or a pixel x for the car's left edge
-================================================================== */
-const CONFIG = {
-  canvasWidth: 800,
-  canvasHeight: 600,
-  DIRECTION: 1,
-  SPEED: 4,
-  bodyColor: "#d93a3a",
-  cabinColor: "#a82525",
-  windowColor: "#bfe3f5",
-  wheelColor: "#1b1b1f",
-  hubColor: "#c9ccd3",
-  lightColor: "#ffe9a3",
-  roadColor: "#3a3d45",
-  laneColor: "#e8e8e8",
-  backgroundColor: "#8ecae6",
-  roadTop: 380,
-  roadHeight: 140,
-  laneDashWidth: 50,
-  laneDashHeight: 6,
-  laneDashGap: 40,
-  carWidth: 180,
-  carHeight: 44,
-  cabinWidthRatio: 0.55,
-  cabinHeightRatio: 0.85,
-  cabinOffsetRatio: 0.04,
-  wheelRadius: 19,
-  wheelInsetRatio: 0.22,
-  spokeCount: 5,
-  hubRatio: 0.4,
-  spokeLineWidth: 2,
-  windowInset: 6,
-  lightSize: 10,
-  startX: "offscreen"
-};
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        /*
+         * CONFIG: Controls all tunable parameters for the animation.
+         * - DIRECTION: 1 for left-to-right, -1 for right-to-left.
+         * - SPEED: Positive number for how fast the car moves per frame.
+         * - bodyColor, windowColor, wheelColor, roadColor: CSS colors.
+         * - carWidth, carHeight, roofWidth, roofHeight, wheelRadius: Structural dimensions.
+         * - carY: Vertical placement of the car's bottom edge.
+         * - roadY, roadHeight: Placement and thickness of the road.
+         */
+        const CONFIG = {
+            DIRECTION: 1,
+            SPEED: 6,
+            bodyColor: "#00b4d8",
+            windowColor: "#caf0f8",
+            wheelColor: "#1a1a1a",
+            roadColor: "#2b2b2b",
+            skyColorTop: "#03045e",
+            skyColorBottom: "#ff9e00",
+            carWidth: 160,
+            carHeight: 40,
+            roofWidth: 90,
+            roofHeight: 35,
+            wheelRadius: 20,
+            carY: 450,
+            roadY: 450,
+            roadHeight: 150
+        };
 
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-canvas.width = CONFIG.canvasWidth;
-canvas.height = CONFIG.canvasHeight;
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
 
-const car = {
-  x: 0,                                     // left edge of the car
-  y: CONFIG.roadTop + CONFIG.roadHeight / 2 - CONFIG.carHeight / 2 - CONFIG.wheelRadius / 2,
-  wheelAngle: 0
-};
-function spawnX() { return CONFIG.DIRECTION === 1 ? -CONFIG.carWidth : canvas.width; }
-car.x = CONFIG.startX === "offscreen" ? spawnX() : CONFIG.startX;
+        let x = CONFIG.DIRECTION === 1 ? -CONFIG.carWidth : canvas.width;
+        let roadOffset = 0;
 
-function update() {
-  car.x += CONFIG.SPEED * CONFIG.DIRECTION;                       // translate on one axis
-  car.wheelAngle += (CONFIG.SPEED / CONFIG.wheelRadius) * CONFIG.DIRECTION;
+        function update() {
+            x += CONFIG.SPEED * CONFIG.DIRECTION;
+            
+            // Move road lines opposite to the car to increase speed illusion
+            roadOffset -= (CONFIG.SPEED * 1.5) * CONFIG.DIRECTION;
+            if (Math.abs(roadOffset) >= 80) roadOffset = 0;
 
-  // Wrap-around: once fully off-screen, respawn just beyond the opposite edge.
-  if (CONFIG.DIRECTION === 1 && car.x > canvas.width) car.x = -CONFIG.carWidth;
-  if (CONFIG.DIRECTION === -1 && car.x + CONFIG.carWidth < 0) car.x = canvas.width;
-}
+            // Wrap-around logic
+            if (CONFIG.DIRECTION === 1 && x - 100 > canvas.width) {
+                x = -CONFIG.carWidth - 100;
+            } else if (CONFIG.DIRECTION === -1 && x + CONFIG.carWidth + 100 < 0) {
+                x = canvas.width + 100;
+            }
+        }
 
-function drawWheel(cx, cy) {
-  ctx.fillStyle = CONFIG.wheelColor;
-  ctx.beginPath(); ctx.arc(cx, cy, CONFIG.wheelRadius, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = CONFIG.hubColor;
-  ctx.beginPath(); ctx.arc(cx, cy, CONFIG.wheelRadius * CONFIG.hubRatio, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = CONFIG.hubColor;
-  ctx.lineWidth = CONFIG.spokeLineWidth;
-  for (let i = 0; i < CONFIG.spokeCount; i++) {
-    const a = car.wheelAngle * CONFIG.DIRECTION + (i * Math.PI * 2) / CONFIG.spokeCount;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(a) * CONFIG.wheelRadius * 0.9, cy + Math.sin(a) * CONFIG.wheelRadius * 0.9);
-    ctx.stroke();
-  }
-}
+        function draw() {
+            // Gradient Sky
+            let skyGrad = ctx.createLinearGradient(0, 0, 0, CONFIG.roadY);
+            skyGrad.addColorStop(0, CONFIG.skyColorTop);
+            skyGrad.addColorStop(1, CONFIG.skyColorBottom);
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, CONFIG.roadY);
 
-function drawCar() {
-  const w = CONFIG.carWidth, h = CONFIG.carHeight;
-  ctx.save();
-  // Origin = centre of the car; mirror horizontally when driving right-to-left.
-  ctx.translate(car.x + w / 2, car.y);
-  ctx.scale(CONFIG.DIRECTION, 1);
+            // Road & lines
+            ctx.fillStyle = CONFIG.roadColor;
+            ctx.fillRect(0, CONFIG.roadY, canvas.width, CONFIG.roadHeight);
+            
+            ctx.fillStyle = "#ffb703";
+            for(let i = -1; i < canvas.width / 80 + 2; i++) {
+                ctx.fillRect((i * 80) + roadOffset, CONFIG.roadY + 70, 40, 6);
+            }
 
-  // Body
-  ctx.fillStyle = CONFIG.bodyColor;
-  ctx.fillRect(-w / 2, 0, w, h);
+            // Headlight Beam
+            const isFacingRight = CONFIG.DIRECTION === 1;
+            const frontX = isFacingRight ? x + CONFIG.carWidth : x;
+            
+            let beamGrad = ctx.createLinearGradient(frontX, CONFIG.carY - 20, frontX + (isFacingRight ? 300 : -300), CONFIG.carY);
+            beamGrad.addColorStop(0, "rgba(255, 255, 200, 0.6)");
+            beamGrad.addColorStop(1, "rgba(255, 255, 200, 0)");
+            
+            ctx.beginPath();
+            ctx.moveTo(frontX, CONFIG.carY - 25);
+            ctx.lineTo(frontX + (isFacingRight ? 400 : -400), CONFIG.carY - 60);
+            ctx.lineTo(frontX + (isFacingRight ? 400 : -400), CONFIG.carY + 20);
+            ctx.lineTo(frontX, CONFIG.carY - 5);
+            ctx.fillStyle = beamGrad;
+            ctx.fill();
+            ctx.closePath();
 
-  // Cabin / roof
-  const cw = w * CONFIG.cabinWidthRatio, ch = h * CONFIG.cabinHeightRatio;
-  const cx = -cw / 2 - w * CONFIG.cabinOffsetRatio;
-  ctx.fillStyle = CONFIG.cabinColor;
-  ctx.fillRect(cx, -ch, cw, ch);
+            // Car Shadow
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.beginPath();
+            ctx.ellipse(x + CONFIG.carWidth/2, CONFIG.carY + 5, CONFIG.carWidth/2 + 10, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-  // Window
-  ctx.fillStyle = CONFIG.windowColor;
-  ctx.fillRect(cx + CONFIG.windowInset, -ch + CONFIG.windowInset, cw - CONFIG.windowInset * 2, ch - CONFIG.windowInset);
+            // Car Roof & Windows
+            const roofX = x + (CONFIG.carWidth - CONFIG.roofWidth) / 2;
+            const roofY = CONFIG.carY - CONFIG.carHeight - CONFIG.roofHeight;
+            
+            ctx.fillStyle = CONFIG.bodyColor;
+            ctx.beginPath();
+            ctx.roundRect(roofX, roofY, CONFIG.roofWidth, CONFIG.roofHeight, [10, 10, 0, 0]);
+            ctx.fill();
 
-  // Headlight (front = +x side)
-  ctx.fillStyle = CONFIG.lightColor;
-  ctx.fillRect(w / 2 - CONFIG.lightSize, h * 0.2, CONFIG.lightSize, CONFIG.lightSize);
+            // Windows
+            ctx.fillStyle = CONFIG.windowColor;
+            const windowMargin = 4;
+            ctx.fillRect(roofX + windowMargin, roofY + windowMargin, (CONFIG.roofWidth / 2) - windowMargin*1.5, CONFIG.roofHeight - windowMargin);
+            ctx.fillRect(roofX + (CONFIG.roofWidth / 2) + windowMargin/2, roofY + windowMargin, (CONFIG.roofWidth / 2) - windowMargin*1.5, CONFIG.roofHeight - windowMargin);
 
-  // Wheels
-  drawWheel(-w / 2 + w * CONFIG.wheelInsetRatio, h);
-  drawWheel( w / 2 - w * CONFIG.wheelInsetRatio, h);
-  ctx.restore();
-}
+            // Car Body
+            ctx.fillStyle = CONFIG.bodyColor;
+            ctx.beginPath();
+            ctx.roundRect(x, CONFIG.carY - CONFIG.carHeight, CONFIG.carWidth, CONFIG.carHeight, [8, 8, 8, 8]);
+            ctx.fill();
 
-function draw() {
-  ctx.fillStyle = CONFIG.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Headlight/Taillight hardware
+            ctx.fillStyle = isFacingRight ? "#ffff99" : "#ff3333";
+            ctx.fillRect(x + CONFIG.carWidth - 5, CONFIG.carY - 25, 5, 15);
+            ctx.fillStyle = isFacingRight ? "#ff3333" : "#ffff99";
+            ctx.fillRect(x, CONFIG.carY - 25, 5, 15);
 
-  ctx.fillStyle = CONFIG.roadColor;
-  ctx.fillRect(0, CONFIG.roadTop, canvas.width, CONFIG.roadHeight);
+            // Wheels and rims
+            const wheelOffset1 = CONFIG.carWidth * 0.2;
+            const wheelOffset2 = CONFIG.carWidth * 0.8;
 
-  ctx.fillStyle = CONFIG.laneColor;
-  const laneY = CONFIG.roadTop + CONFIG.roadHeight / 2 - CONFIG.laneDashHeight / 2;
-  for (let x = 0; x < canvas.width; x += CONFIG.laneDashWidth + CONFIG.laneDashGap) {
-    ctx.fillRect(x, laneY, CONFIG.laneDashWidth, CONFIG.laneDashHeight);
-  }
+            [wheelOffset1, wheelOffset2].forEach(offsetX => {
+                // Tire
+                ctx.beginPath();
+                ctx.arc(x + offsetX, CONFIG.carY, CONFIG.wheelRadius, 0, Math.PI * 2);
+                ctx.fillStyle = CONFIG.wheelColor;
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = "#000";
+                ctx.stroke();
+                ctx.closePath();
 
-  drawCar();
-}
+                // Rim
+                ctx.beginPath();
+                ctx.arc(x + offsetX, CONFIG.carY, CONFIG.wheelRadius * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = "#bbb";
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
 
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
-</script>
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
 </body>
 </html>

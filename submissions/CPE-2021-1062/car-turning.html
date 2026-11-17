@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cornering: A Car's Turning Motion</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    color: #ecf2ff;
+    background: #101725;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  main { width: min(100%, 1000px); }
+  header { margin: 0 0 16px; }
+  h1 { margin: 0; font-size: clamp(1.3rem, 3vw, 1.8rem); letter-spacing: -.03em; }
+  header p { margin: 5px 0 0; color: #9eacc2; font-size: .95rem; }
+  .track-frame {
+    overflow: hidden;
+    border: 1px solid #303d51;
+    border-radius: 20px;
+    background: #172235;
+    box-shadow: 0 24px 60px #080c14a6;
+  }
+  svg { display: block; width: 100%; height: auto; }
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 14px;
+    padding: 14px 18px;
+    border: 1px solid #303d51;
+    border-radius: 14px;
+    background: #1a2639;
+  }
+  .speed-control { display: flex; align-items: center; gap: 12px; color: #cbd6e8; font-size: .9rem; }
+  input[type="range"] { width: min(42vw, 260px); accent-color: #66d9c4; }
+  output { min-width: 3.5em; color: #66d9c4; font-weight: 700; }
+  @media (max-width: 520px) {
+    .controls { align-items: flex-start; flex-direction: column; }
+    input[type="range"] { width: 55vw; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Cornering: A Car's Turning Motion</h1>
+    <p>Watch the car follow a winding road. Adjust its speed to see each turn clearly.</p>
+  </header>
+  <div class="track-frame">
+    <svg id="scene" viewBox="0 0 920 520" role="img"
+         aria-label="Top-down red car smoothly follows a winding road, turning to match each bend.">
+      <defs>
+        <linearGradient id="terrain" x2="0" y2="1">
+          <stop stop-color="#24334a"/>
+          <stop offset="1" stop-color="#1a2638"/>
+        </linearGradient>
+        <linearGradient id="paint" x2="0" y2="1">
+          <stop stop-color="#ff866c"/>
+          <stop offset="1" stop-color="#dc3f57"/>
+        </linearGradient>
+        <filter id="carShadow" x="-.5" y="-.7" width="2" height="2">
+          <feGaussianBlur stdDeviation="5"/>
+        </filter>
+        <path id="roadPath" d="M 190 124 C 280 70 640 70 730 124 C 817 179 845 330 730 396 C 640 450 280 450 190 396 C 103 330 103 190 190 124 Z"/>
+      </defs>
+
+      <rect width="920" height="520" fill="url(#terrain)"/>
+      <g fill="#34445a" opacity=".75">
+        <path d="M0 0h132v82H0zm159 0h94v55h-94zm641 0h120v70H800zM0 450h118v70H0zm808 0h112v70H808z"/>
+        <path d="M35 23h18v18H35zm43 0h18v18H78zm-43 30h18v18H35zm768-28h18v18h-18zm39 0h18v18h-18zM29 475h18v18H29zm48 0h18v18H77zm763 0h18v18h-18z" fill="#64738b" opacity=".65"/>
+      </g>
+      <path d="M0 112H920M0 426H920" stroke="#43536b" stroke-width="2" stroke-dasharray="5 12" opacity=".45"/>
+
+      <use href="#roadPath" fill="none" stroke="#111a28" stroke-width="118" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#roadPath" fill="none" stroke="#66758b" stroke-width="104" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#roadPath" fill="none" stroke="#344256" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#roadPath" fill="none" stroke="#e8c879" stroke-width="3" stroke-dasharray="20 18" stroke-linecap="round" opacity=".9"/>
+
+      <g id="car" transform="translate(80 390)">
+        <ellipse cx="0" cy="8" rx="44" ry="25" fill="#050a12" opacity=".55" filter="url(#carShadow)"/>
+        <g>
+          <rect x="-26" y="-24" width="19" height="8" rx="3" fill="#080d15"/>
+          <rect x="10" y="-24" width="19" height="8" rx="3" fill="#080d15"/>
+          <rect x="-26" y="16" width="19" height="8" rx="3" fill="#080d15"/>
+          <rect x="10" y="16" width="19" height="8" rx="3" fill="#080d15"/>
+          <path d="M-37-15q2-10 14-11h37q15 2 20 14l4 9-5 19q-4 9-16 10h-38q-13-1-16-12l-4-17z" fill="url(#paint)" stroke="#ffb098" stroke-width="2"/>
+          <path d="M-13-17q5-5 13-5h11q9 2 12 10l2 8H-16z" fill="#9dd8e4" stroke="#d6f5f5" stroke-width="2"/>
+          <path d="M-18 2h41l-2 10q-2 6-10 7h-17q-8-1-10-7z" fill="#283c53"/>
+          <path d="M-32-8h8m53 0h8" stroke="#fff1bc" stroke-width="4" stroke-linecap="round"/>
+          <path d="M-33 13h7m52 0h7" stroke="#ffdc8c" stroke-width="3" stroke-linecap="round"/>
+          <path d="M-1-21v39" stroke="#a72f4d" stroke-width="2" opacity=".75"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <div class="controls">
+    <label class="speed-control" for="speed">
+      <span>Car speed</span>
+      <input id="speed" type="range" min="0.5" max="2" step="0.1" value="1" aria-label="Car speed">
+      <output id="speedValue" for="speed">1.0×</output>
+    </label>
+    <span id="status" aria-live="polite">Following the road</span>
+  </div>
+</main>
+<script>
+(() => {
+  const path = document.getElementById("roadPath");
+  const car = document.getElementById("car");
+  const slider = document.getElementById("speed");
+  const output = document.getElementById("speedValue");
+  const status = document.getElementById("status");
+  const length = path.getTotalLength();
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let distance = 0;
+  let previousTime = null;
+  let speed = Number(slider.value);
+
+  slider.addEventListener("input", () => {
+    speed = Number(slider.value);
+    output.value = `${speed.toFixed(1)}×`;
+    output.textContent = output.value;
+    status.textContent = `Following the road · ${speed.toFixed(1)}× speed`;
+  });
+
+  function frame(now) {
+    if (previousTime === null) previousTime = now;
+    const delta = Math.min((now - previousTime) / 1000, 0.05);
+    previousTime = now;
+    distance = (distance + delta * speed * 64) % length;
+    const point = path.getPointAtLength(distance);
+    const next = path.getPointAtLength((distance + 2) % length);
+    const angle = Math.atan2(next.y - point.y, next.x - point.x) * 180 / Math.PI;
+    car.setAttribute("transform", `translate(${point.x} ${point.y}) rotate(${angle})`);
+    requestAnimationFrame(frame);
+  }
+
+  if (!reducedMotion) requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

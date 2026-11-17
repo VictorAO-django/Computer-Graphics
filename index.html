@@ -10,6 +10,11 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body { font-family: 'Poppins', sans-serif; }
+  button, input { font-family: inherit; }
+  button:focus-visible, input:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .35);
+    outline-offset: 2px;
+  }
 
   /* Mobile default: sidebar (list) shown, main (detail) hidden. Once a student is
      picked, body gets "showing-detail" which swaps that. Desktop (lg+): sidebar is a
@@ -40,14 +45,14 @@
 
   /* segmented-control tabs for switching between a student's animations */
   .seg-tab {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 9999px;
-    font-size: 0.875rem; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 0.75rem;
+    font-size: 0.875rem; font-weight: 500; text-align: center;
     transition: background-color .15s ease, color .15s ease;
   }
   .seg-tab.active { background: #2563eb; color: #fff; }
   .seg-tab.inactive { color: #737373; }
-  .seg-tab.inactive:hover { background: #e5e5e5; color: #262626; }
+  .seg-tab.inactive:hover { background: #e5e7eb; color: #262626; }
 </style>
 </head>
 <body class="min-h-screen bg-neutral-200 text-neutral-900">
@@ -102,6 +107,9 @@
       "file-text": html`<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />`,
       car: html`<path d="M5 17h14" /><path d="M5 17a2 2 0 1 1 0-4h.3l1.4-4.2A2 2 0 0 1 8.6 7.4h6.8a2 2 0 0 1 1.9 1.4L18.7 13h.3a2 2 0 1 1 0 4" /><circle cx="7.5" cy="17" r="1.5" /><circle cx="16.5" cy="17" r="1.5" />`,
       download: html`<path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" />`,
+      cat: html`<path d="M12 5 9 2 7 5" /><path d="M12 5l3-3 2 3" /><path d="M7 5h10a4 4 0 0 1 4 4v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V9a4 4 0 0 1 4-4Z" /><path d="M9 13v.01" /><path d="M15 13v.01" /><path d="M10 17c.7.6 1.3.6 2 0" />`,
+      "message-circle": html`<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />`,
+      layers: html`<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.84l8.57 3.9a2 2 0 0 0 1.66 0l8.57-3.9a1 1 0 0 0 0-1.84Z" /><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />`,
     };
 
     function Icon({ name, class: className = "w-4 h-4" }) {
@@ -132,6 +140,10 @@
       "bouncing-ball": { label: "Ball", icon: "circle-dot" },
       "moving-car": { label: "Car", icon: "car" },
       "earth-orbting": { label: "Moon", icon: "moon" },
+      "cat-mouse": { label: "Cat & Mouse", icon: "cat" },
+      "car-turning": { label: "Car Turning", icon: "car" },
+      "handicapped": { label: "Conversation", icon: "message-circle" },
+      "all-animations-2": { label: "All (2)", icon: "layers" },
     };
 
     function colorFor(name) {
@@ -253,15 +265,16 @@
       return html`
         <button
           class="w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-xl border transition ${
-            isSelected ? "bg-blue-50 border-blue-200" : "bg-gray-100 border-neutral-200 hover:border-gray-300"
+            isSelected
+              ? "bg-blue-50 border-blue-200 shadow-sm"
+              : "bg-white border-neutral-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
           }"
           onClick=${onSelect}
         >
-          <${Avatar} student=${student} size="w-12 h-12" onZoom=${onZoomPhoto} />
+          <${Avatar} student=${student} size="w-12 h-12 shadow-sm ring-2 ring-white" onZoom=${onZoomPhoto} />
           <div class="min-w-0 flex-1">
             <p class="font-medium text-neutral-900 text-sm leading-snug">${student.name}</p>
             <p class="text-xs text-neutral-500">${student.matric}</p>
-            <div class="flex flex-wrap gap-1 mt-1.5"><${FileBadges} files=${student.files} /></div>
           </div>
           <${Icon} name="chevron-right" class="w-4 h-4 text-neutral-300 shrink-0" />
         </button>
@@ -270,11 +283,11 @@
 
     function Tabs({ files, activeIndex, onSelect }) {
       return html`
-        <div class="flex flex-wrap gap-1.5 bg-neutral-100 rounded-full p-1.5 w-fit">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 w-full">
           ${files.map((fileName, i) => {
             const { icon } = fileMeta(fileName);
             return html`
-              <button class="seg-tab ${i === activeIndex ? "active" : "inactive"} text-sm" onClick=${() => onSelect(i)}>
+              <button class="seg-tab ${i === activeIndex ? "active" : "inactive"}" onClick=${() => onSelect(i)}>
                 <${Icon} name=${icon} class="w-3.5 h-3.5" />${prettyFileName(fileName)}
               </button>
             `;
@@ -291,7 +304,7 @@
       const fileUrl = hasFiles ? `submissions/${student.folder}/${student.files[activeFileIndex]}` : null;
 
       return html`
-        <div class="flex flex-col gap-4 bg-white border border-neutral-200 rounded-2xl p-4 lg:p-6">
+        <div class="flex flex-col gap-4 bg-white border border-neutral-200 rounded-2xl p-4 lg:p-6 shadow-sm">
           <div class="flex items-center gap-3">
             <${Avatar} student=${student} size="w-11 h-11" onZoom=${onZoomPhoto} />
             <div class="min-w-0">
@@ -301,14 +314,14 @@
           </div>
 
           ${hasFiles && html`
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex flex-col items-stretch gap-3 w-full">
               ${student.files.length > 1 && html`
                 <${Tabs} files=${student.files} activeIndex=${activeFileIndex} onSelect=${onTabSelect} />
               `}
               <a
                 href=${fileUrl}
                 download=${student.files[activeFileIndex]}
-                class="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-full px-3.5 py-2 transition shrink-0"
+                class="self-end inline-flex items-center gap-1.5 text-sm font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-full px-3.5 py-2 transition shrink-0"
               >
                 <${Icon} name="download" class="w-4 h-4" />
                 Download
@@ -341,20 +354,36 @@
 
     function MainPanel({ student, activeFileIndex, onTabSelect, onBack, onZoomPhoto }) {
       return html`
-        <main id="mainPanel" class="flex-col flex-1 min-w-0 bg-neutral-100">
-          <div class="p-4 lg:p-7 max-w-[1100px] w-full mx-auto">
+        <main id="mainPanel" class="flex-col flex-1 min-w-0 bg-gradient-to-br from-slate-50 via-neutral-100 to-blue-50">
+          <div class="p-4 lg:p-8 max-w-[1100px] w-full mx-auto">
             <button
-              class="lg:hidden mb-4 inline-flex items-center gap-1.5 bg-white border border-neutral-200 rounded-full pl-3 pr-4 py-2 text-sm font-medium text-neutral-600 hover:border-neutral-300 hover:text-neutral-900 active:scale-[0.97] transition"
+              class="lg:hidden mb-5 inline-flex items-center gap-1.5 bg-white border border-neutral-200 rounded-full pl-3 pr-4 py-2 text-sm font-medium text-neutral-600 hover:border-blue-200 hover:text-blue-700 active:scale-[0.97] transition"
               onClick=${onBack}
             >
               <${Icon} name="arrow-left" class="w-4 h-4" /> Back to list
             </button>
 
+            <header class="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[.18em] text-blue-600">Group 6 · 500 Level</p>
+                <h1 class="mt-1 text-2xl lg:text-3xl font-semibold tracking-tight text-neutral-900">Assignment review</h1>
+                <p class="mt-1 text-sm text-neutral-500">Explore each student's Computer Graphics submissions.</p>
+              </div>
+              <div class="hidden sm:flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-3 py-2 text-xs font-medium text-blue-700 shadow-sm">
+                <${Icon} name="layers" class="w-4 h-4" />
+                Submission hub
+              </div>
+            </header>
+
             ${student
               ? html`<${PreviewCard} student=${student} activeFileIndex=${activeFileIndex} onTabSelect=${onTabSelect} onZoomPhoto=${onZoomPhoto} />`
               : html`
-                  <div class="flex flex-col items-center justify-center text-center bg-white border border-dashed border-neutral-300 rounded-2xl py-24 text-neutral-400 text-sm">
-                    Select a student to preview their assignment
+                  <div class="flex flex-col items-center justify-center text-center bg-white border border-neutral-200 rounded-2xl px-6 py-20 shadow-sm">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-blue-50 text-blue-600">
+                      <${Icon} name="users" class="w-7 h-7" />
+                    </div>
+                    <h2 class="mt-4 text-base font-semibold text-neutral-800">Choose a student</h2>
+                    <p class="mt-1 max-w-sm text-sm text-neutral-500">Select a name from the list to view their submitted animations.</p>
                   </div>
                 `
             }
@@ -365,28 +394,35 @@
 
     function Sidebar({ students, filtered, selectedMatric, searchQuery, onSearch, onSelect, onZoomPhoto }) {
       return html`
-        <aside id="sidebar" class="flex-col w-full lg:w-[340px] lg:shrink-0 bg-white lg:border-r lg:border-neutral-200 lg:overflow-y-auto">
+        <aside id="sidebar" class="flex-col w-full lg:w-[340px] lg:shrink-0 bg-slate-50 lg:border-r lg:border-neutral-200 lg:overflow-y-auto">
           <div class="px-5 pt-5 pb-4 bg-white border-b border-neutral-200">
-            <div class="flex items-center gap-2">
-              <div class="min-w-0">
-                <p class="font-semibold text-2xl leading-tight truncate text-blue-500">
-                  Group 6 <span>(${students.length} student${students.length === 1 ? "" : "s"})</span>
-                </p>
-                <p class="text-xs text-neutral-500 leading-tight">Computer Graphics 500Level</p>
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
+                  <${Icon} name="users" class="w-5 h-5" />
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold text-xl leading-tight truncate text-neutral-900">Group 6</p>
+                  <p class="text-xs text-neutral-500 leading-tight mt-1">Computer Graphics · 500 Level</p>
+                </div>
               </div>
+              <span class="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">${students.length}</span>
             </div>
 
             <div class="relative mt-4">
               <${Icon} name="search" class="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
+                aria-label="Search students by name or matric number"
                 placeholder="Search name or matric number"
                 value=${searchQuery}
                 onInput=${(e) => onSearch(e.target.value)}
-                class="w-full pl-10 pr-9 py-2.5 rounded-full bg-neutral-100 border border-transparent text-sm placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors"
+                class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50 border border-neutral-200 text-sm placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition"
               />
               ${searchQuery && html`
                 <button
+                  type="button"
+                  aria-label="Clear search"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                   onClick=${() => onSearch("")}
                 >
@@ -409,7 +445,7 @@
           </div>
 
           ${filtered.length === 0 && html`
-            <p class="text-center text-neutral-400 py-16 text-sm">No matching student found.</p>
+            <p class="mx-3 my-8 rounded-xl bg-white px-4 py-8 text-center text-sm text-neutral-500 border border-dashed border-neutral-300">No matching student found.</p>
           `}
         </aside>
       `;
@@ -474,7 +510,7 @@
       }
 
       return html`
-        <div id="appShell" class="bg-neutral-100 lg:flex lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
+        <div id="appShell" class="bg-neutral-100 lg:m-4 lg:flex lg:h-[calc(100vh-2rem)] lg:overflow-hidden lg:rounded-3xl lg:border lg:border-neutral-200 lg:shadow-xl lg:shadow-slate-300/40">
           <${Sidebar}
             students=${students}
             filtered=${filtered}

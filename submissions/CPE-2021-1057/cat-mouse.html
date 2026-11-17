@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cat and Mouse</title>
+<style>
+    :root {
+        --fg: #1f2a44;
+        --muted: #5b6b8c;
+        --accent1: #12b3a8;
+        --accent2: #0d8a82;
+        --card: rgba(255,255,255,.6);
+    }
+    html, body {
+        margin: 0;
+        min-height: 100%;
+        background: linear-gradient(160deg, #eafcff 0%, #f3f0ff 55%, #fff7ea 100%);
+        color: var(--fg);
+        font-family: "Segoe UI", system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 28px 16px 34px;
+        box-sizing: border-box;
+    }
+    h1 {
+        margin: 0;
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: .2px;
+        text-align: center;
+    }
+    .stage {
+        width: 100%;
+        max-width: 880px;
+        border-radius: 22px;
+        overflow: hidden;
+        line-height: 0;
+        box-shadow: 0 2px 6px rgba(31,42,68,.08), 0 22px 46px -18px rgba(31,42,68,.35);
+    }
+    svg { width: 100%; height: auto; display: block; }
+    p.caption { margin: 0; color: var(--muted); font-size: .88rem; text-align: center; max-width: 60ch; }
+</style>
+</head>
+<body>
+
+<h1>Cat and Mouse</h1>
+
+<div class="stage">
+<svg id="scene" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="A gray tabby cat sits in a sunny meadow, turning its head to watch a mouse run circles around it">
+    <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4fa8e8"/>
+            <stop offset="62%" stop-color="#bfe3f7"/>
+            <stop offset="100%" stop-color="#fdf2d8"/>
+        </linearGradient>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff6c2" stop-opacity=".65"/>
+            <stop offset="100%" stop-color="#fff6c2" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sunBody" cx="38%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#fffbe0"/>
+            <stop offset="55%" stop-color="#ffd35c"/>
+            <stop offset="100%" stop-color="#ffab2e"/>
+        </radialGradient>
+        <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#9fcf8e"/>
+            <stop offset="100%" stop-color="#7fba6c"/>
+        </linearGradient>
+        <linearGradient id="hillFront" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6cab58"/>
+            <stop offset="100%" stop-color="#4f8f42"/>
+        </linearGradient>
+    </defs>
+
+    <rect width="800" height="500" fill="url(#sky)"/>
+
+    <!-- sun -->
+    <g id="sun" transform="translate(648 86)">
+        <circle r="92" fill="url(#sunGlow)"/>
+        <g id="sunRays" stroke="#ffd35c" stroke-width="5" stroke-linecap="round" opacity=".8"></g>
+        <circle r="44" fill="url(#sunBody)"/>
+    </g>
+
+    <!-- drifting clouds (built from overlapping puffs, not a fixed path) -->
+    <g id="cloudA" fill="#ffffff" opacity=".92"></g>
+    <g id="cloudB" fill="#ffffff" opacity=".85"></g>
+
+    <!-- birds -->
+    <g id="birds" stroke="#3a4a63" stroke-width="2.6" fill="none" stroke-linecap="round"></g>
+
+    <!-- rolling hills + sun-baked path -->
+    <path d="M0 300 Q180 250 360 298 T800 288 V500 H0 Z" fill="url(#hillBack)"/>
+    <path d="M0 340 Q200 300 400 338 T800 330 V500 H0 Z" fill="url(#hillFront)"/>
+    <ellipse cx="400" cy="434" rx="330" ry="64" fill="#d9ab6e" opacity=".9"/>
+    <ellipse cx="400" cy="434" rx="288" ry="52" fill="#c89257" opacity=".85"/>
+
+    <g id="layerBack"></g>
+
+    <!-- CAT -->
+    <g id="cat">
+        <ellipse cx="400" cy="438" rx="118" ry="18" fill="#6b4a28" opacity=".3"/>
+
+        <!-- tail -->
+        <g id="tail" transform="translate(478 400)">
+            <path d="M0 0 C 64 6 96 -34 70 -96" fill="none" stroke-width="28" stroke-linecap="round" class="tail-base"/>
+            <path d="M0 0 C 64 6 96 -34 70 -96" fill="none" stroke-width="20" stroke-linecap="round" class="tail-mid"/>
+            <path d="M28 -64 L10 -72 M42 -84 L24 -88" stroke="#2a2036" stroke-width="5" stroke-linecap="round"/>
+        </g>
+
+        <!-- hind legs tucked under body -->
+        <ellipse cx="340" cy="420" rx="26" ry="15" class="fur-shadow"/>
+        <ellipse cx="460" cy="420" rx="26" ry="15" class="fur-shadow"/>
+
+        <!-- body -->
+        <ellipse cx="400" cy="345" rx="92" ry="86" class="fur-main"/>
+        <ellipse cx="400" cy="368" rx="54" ry="58" class="fur-light"/>
+        <path d="M322 330 q16 8 18 20 M478 330 q-16 8 -18 20" stroke="#2a2036" stroke-width="4" fill="none" stroke-linecap="round" opacity=".35"/>
+
+        <!-- front paws -->
+        <ellipse cx="360" cy="418" rx="28" ry="16" class="fur-light"/>
+        <ellipse cx="440" cy="418" rx="28" ry="16" class="fur-light"/>
+        <path d="M352 412 v9 M362 411 v10 M438 411 v10 M448 412 v9" stroke="#2a2036" stroke-width="2.5" stroke-linecap="round" opacity=".4"/>
+
+        <!-- head -->
+        <g id="head" transform="translate(400 238)">
+            <!-- ears -->
+            <g id="earL" transform-origin="-54 -70">
+                <path d="M-74 -24 L-66 -96 L-18 -54 Z" class="fur-main"/>
+                <path d="M-62 -40 L-58 -78 L-36 -52 Z" fill="#e3a7ab"/>
+            </g>
+            <g id="earR" transform-origin="54 -70">
+                <path d="M74 -24 L66 -96 L18 -54 Z" class="fur-main"/>
+                <path d="M62 -40 L58 -78 L36 -52 Z" fill="#e3a7ab"/>
+            </g>
+
+            <!-- skull -->
+            <ellipse cx="0" cy="0" rx="84" ry="68" class="fur-main"/>
+
+            <!-- tabby stripes on forehead -->
+            <path d="M-16 -62 v20 M0 -66 v24 M16 -62 v20" stroke="#2a2036" stroke-width="5" stroke-linecap="round" opacity=".35"/>
+
+            <!-- muzzle -->
+            <ellipse cx="0" cy="24" rx="40" ry="28" class="fur-light"/>
+
+            <!-- eyes -->
+            <g id="eyeL" transform="translate(-33 -6)">
+                <ellipse rx="21" ry="24" fill="#fff8ec"/>
+                <g class="pupil">
+                    <circle r="12" fill="#1f3b2e"/>
+                    <circle r="6.5" fill="#0d1a14"/>
+                    <circle cx="-3" cy="-4" r="3" fill="#fff" opacity=".9"/>
+                </g>
+                <path class="lid" d="M-23 -26 H23 V-25 H-23 Z" class="fur-main"/>
+            </g>
+            <g id="eyeR" transform="translate(33 -6)">
+                <ellipse rx="21" ry="24" fill="#fff8ec"/>
+                <g class="pupil">
+                    <circle r="12" fill="#1f3b2e"/>
+                    <circle r="6.5" fill="#0d1a14"/>
+                    <circle cx="-3" cy="-4" r="3" fill="#fff" opacity=".9"/>
+                </g>
+                <path class="lid" d="M-23 -26 H23 V-25 H-23 Z" class="fur-main"/>
+            </g>
+
+            <!-- brows -->
+            <path id="browL" d="M-54 -36 Q-36 -46 -16 -38" fill="none" stroke="#2a2036" stroke-width="4.5" stroke-linecap="round"/>
+            <path id="browR" d="M54 -36 Q36 -46 16 -38" fill="none" stroke="#2a2036" stroke-width="4.5" stroke-linecap="round"/>
+
+            <!-- nose + mouth -->
+            <path d="M-8 18 H8 L0 29 Z" fill="#e3838c" stroke="#2a2036" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M0 29 Q-11 42 -24 35 M0 29 Q11 42 24 35" fill="none" stroke="#2a2036" stroke-width="3.5" stroke-linecap="round"/>
+
+            <!-- whiskers -->
+            <g stroke="#f5ede0" stroke-width="2.3" stroke-linecap="round" opacity=".85">
+                <path d="M-48 20 L-92 10 M-48 28 L-94 29 M-46 36 L-88 48"/>
+                <path d="M48 20 L92 10 M48 28 L94 29 M46 36 L88 48"/>
+            </g>
+        </g>
+    </g>
+
+    <g id="layerFront"></g>
+
+    <!-- MOUSE -->
+    <g id="mouse">
+        <ellipse cx="0" cy="4" rx="34" ry="6" fill="#6b4a28" opacity=".3"/>
+        <g id="mouseBody">
+            <path d="M-22 -12 Q-46 -6 -48 -27 T-70 -23" fill="none" stroke="#6b5847" stroke-width="7" stroke-linecap="round"/>
+            <g id="legBack"><ellipse cx="-10" cy="-3" rx="8" ry="5" fill="#9c8468" stroke="#4a3b2c" stroke-width="2.5"/></g>
+            <g id="legBack2"><ellipse cx="2" cy="-3" rx="8" ry="5" fill="#9c8468" stroke="#4a3b2c" stroke-width="2.5"/></g>
+            <ellipse cx="0" cy="-14" rx="27" ry="16" fill="#b4987a" stroke="#4a3b2c" stroke-width="3.5"/>
+            <ellipse cx="3" cy="-9" rx="16" ry="8" fill="#e3d2bb"/>
+            <ellipse cx="23" cy="-18" rx="14" ry="12" fill="#b4987a" stroke="#4a3b2c" stroke-width="3.5"/>
+            <circle cx="16" cy="-32" r="9.5" fill="#d9a9b0" stroke="#4a3b2c" stroke-width="3"/>
+            <circle cx="35" cy="-17" r="4" fill="#e3838c" stroke="#4a3b2c" stroke-width="2"/>
+            <circle cx="27" cy="-22" r="3.2" fill="#2a2036"/><circle cx="28" cy="-23" r="1.1" fill="#fff"/>
+            <path d="M33 -13 l12 -3 M33 -10 l12 3" stroke="#2a2036" stroke-width="1.8" stroke-linecap="round"/>
+            <g id="legFront"><ellipse cx="12" cy="-3" rx="8" ry="5" fill="#b4987a" stroke="#4a3b2c" stroke-width="2.5"/></g>
+            <g id="legFront2"><ellipse cx="-4" cy="-3" rx="8" ry="5" fill="#b4987a" stroke="#4a3b2c" stroke-width="2.5"/></g>
+        </g>
+    </g>
+</svg>
+</div>
+
+<p class="caption">The cat's eyes, brows and head all turn to keep watching the mouse as it circles.</p>
+
+<style>
+    #scene .fur-main   { fill: #8b8fa3; stroke: #2a2036; stroke-width: 4; }
+    #scene .fur-light  { fill: #e7e3da; }
+    #scene .fur-shadow { fill: #777b8d; opacity: .9; }
+    #scene .tail-base  { stroke: #2a2036; }
+    #scene .tail-mid   { stroke: #a6a9ba; }
+    #scene .lid        { fill: #8b8fa3; stroke: #2a2036; stroke-width: 3.5; }
+</style>
+
+<script>
+(function () {
+    var svg = document.getElementById("scene");
+    var $ = function (id) { return document.getElementById(id); };
+
+    var mouse = $("mouse"), mouseBody = $("mouseBody");
+    var back = $("layerBack"), front = $("layerFront");
+    var head = $("head"), tail = $("tail");
+    var pupils = svg.querySelectorAll(".pupil");
+    var lids = svg.querySelectorAll(".lid");
+    var browL = $("browL"), browR = $("browR");
+    var earL = $("earL"), earR = $("earR");
+    var legs = ["legFront", "legFront2", "legBack", "legBack2"].map($);
+
+    /* ---- background dressing, built once: sun rays, puffy clouds (a
+     * handful of overlapping circles rather than one fixed outline, so
+     * each cloud reads as fluffy) and a couple of simple soaring birds. ---- */
+    var raysGroup = $("sunRays");
+    var RAY_COUNT = 10;
+    for (var r = 0; r < RAY_COUNT; r++) {
+        var ang = (r / RAY_COUNT) * Math.PI * 2;
+        var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", (Math.cos(ang) * 56).toFixed(1));
+        line.setAttribute("y1", (Math.sin(ang) * 56).toFixed(1));
+        line.setAttribute("x2", (Math.cos(ang) * 74).toFixed(1));
+        line.setAttribute("y2", (Math.sin(ang) * 74).toFixed(1));
+        raysGroup.appendChild(line);
+    }
+
+    function buildCloud(group, puffs) {
+        puffs.forEach(function (p) {
+            var c = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+            c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]);
+            c.setAttribute("rx", p[2]); c.setAttribute("ry", p[3]);
+            group.appendChild(c);
+        });
+    }
+    buildCloud($("cloudA"), [[0, 0, 46, 24], [-34, 8, 30, 18], [34, 10, 32, 17], [8, -14, 28, 20]]);
+    buildCloud($("cloudB"), [[0, 0, 34, 18], [-24, 6, 22, 13], [24, 7, 24, 13]]);
+
+    var birdsGroup = $("birds");
+    var birds = [];
+    for (var b = 0; b < 3; b++) {
+        var wing = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        birdsGroup.appendChild(wing);
+        birds.push({ el: wing, by: 70 + Math.random() * 90, sp: 24 + Math.random() * 10, ph: Math.random() * Math.PI * 2, x0: -60 - b * 140 });
+    }
+
+    /* ---- orbit geometry: an ellipse around the cat, so the mouse's
+     * path reads as "going round it" with a bit of perspective (it
+     * looks smaller/further away on the far side of the loop). ---- */
+    var CX = 400, CY = 410, RX = 300, RY = 58;
+    var theta = 0.6, dir = 1, lap = 0;
+    var flip = 1, headAng = 0, headX = 0, px = 0, py = 0, run = 0;
+    var blinkT = 2.2, blink = 0, earT = 3, earFlick = 0;
+    var last = null, clock = 0;
+
+    // respects the OS-level "reduce motion" accessibility setting -- not a
+    // user-facing control, just holds the scene on its first frame for
+    // anyone who has that switched on.
+    var motionOk = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+    function frame(now) {
+        if (last === null) last = now;
+        var dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        if (motionOk) { clock += dt; step(dt); }
+        requestAnimationFrame(frame);
+    }
+
+    function step(dt) {
+        // the mouse's speed breathes a little so it doesn't feel robotic
+        var sp = 1.4 + 0.6 * Math.sin(clock * 1.1);
+        var prevTheta = theta;
+        theta += dir * sp * dt;
+        if (Math.floor(theta / (Math.PI * 2)) !== Math.floor(prevTheta / (Math.PI * 2))) {
+            lap++;
+            if (lap % 3 === 0) dir = -dir;   // occasionally doubles back
+        }
+
+        var sn = Math.sin(theta), cs = Math.cos(theta);
+        var x = CX + RX * cs, y = CY + RY * sn;
+        var depth = (sn + 1) / 2;            // 0 = far side (behind cat), 1 = near side (in front)
+        var scale = 0.68 + 0.5 * depth;
+        run += dt * (13 + sp * 6);
+
+        var vx = -sn * dir * RX;
+        var targetFlip = vx >= 0 ? 1 : -1;
+        flip += (targetFlip - flip) * Math.min(1, dt * 14);
+
+        var hop = -Math.abs(Math.sin(run)) * 6;
+        mouse.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ") scale(" + (scale * flip).toFixed(3) + " " + scale.toFixed(3) + ")");
+        mouseBody.setAttribute("transform", "translate(0 " + hop.toFixed(1) + ")");
+
+        legs.forEach(function (g, i) {
+            var ph = run * 1.2 + (i % 2) * Math.PI;
+            g.setAttribute("transform", "translate(" + (Math.sin(ph) * 8).toFixed(1) + " " + (-Math.max(0, Math.cos(ph)) * 6).toFixed(1) + ")");
+        });
+
+        // keep the mouse behind the cat on the far side of the loop, in front on the near side
+        var want = sn < 0 ? back : front;
+        if (mouse.parentNode !== want) want.appendChild(mouse);
+
+        // the cat's head, pupils and brows all track the mouse's X position
+        var nx = clamp((x - CX) / RX, -1, 1);
+        var behind = sn < 0;
+        headAng += ((nx * 16) - headAng) * Math.min(1, dt * 7);
+        headX += ((nx * 8) - headX) * Math.min(1, dt * 7);
+        var bob = Math.sin(clock * 2.6) * 1.4 + (behind ? -4 : 0);
+        head.setAttribute("transform", "translate(" + (400 + headX).toFixed(1) + " " + (238 + bob).toFixed(1) + ") rotate(" + headAng.toFixed(1) + ")");
+
+        var tpx = nx * 10.5, tpy = behind ? -8 : 5;
+        px += (tpx - px) * Math.min(1, dt * 12);
+        py += (tpy - py) * Math.min(1, dt * 12);
+        for (var i = 0; i < pupils.length; i++) {
+            pupils[i].setAttribute("transform", "translate(" + px.toFixed(1) + " " + py.toFixed(1) + ")");
+        }
+
+        // blink
+        blinkT -= dt;
+        if (blinkT < 0) { blink = 0.16; blinkT = 2 + Math.random() * 3; }
+        var closed = 0;
+        if (blink > 0) { blink -= dt; closed = Math.sin(clamp(blink / 0.16, 0, 1) * Math.PI); }
+        var lidH = closed * 50;
+        for (var j = 0; j < lids.length; j++) {
+            lids[j].setAttribute("d", "M-23 -26 H23 V" + (-26 + lidH).toFixed(1) + " H-23 Z");
+        }
+
+        // brows lift with curiosity as the mouse nears the front
+        var raise = behind ? -4 : Math.max(0, depth - 0.55) * -5;
+        browL.setAttribute("transform", "translate(0 " + raise.toFixed(1) + ")");
+        browR.setAttribute("transform", "translate(0 " + raise.toFixed(1) + ")");
+
+        // ears: a quick flick every few seconds, plus a faint lean toward the mouse
+        earT -= dt;
+        if (earT < 0) { earFlick = 0.25; earT = 3 + Math.random() * 3; }
+        var flickAng = 0;
+        if (earFlick > 0) { earFlick -= dt; flickAng = Math.sin(clamp(earFlick / 0.25, 0, 1) * Math.PI) * 14; }
+        earL.setAttribute("transform", "rotate(" + (-flickAng + nx * 4).toFixed(1) + " -54 -70)");
+        earR.setAttribute("transform", "rotate(" + (flickAng + nx * 4).toFixed(1) + " 54 -70)");
+
+        // tail swishes faster the closer the mouse gets
+        var swish = Math.sin(clock * (2 + depth * 3)) * (9 + depth * 11);
+        tail.setAttribute("transform", "translate(478 400) rotate(" + swish.toFixed(1) + ")");
+
+        // clouds drift slowly across the sky and loop back around
+        var cloudAx = ((clock * 10) % 960) - 120;
+        var cloudBx = ((clock * 6 + 480) % 960) - 120;
+        $("cloudA").setAttribute("transform", "translate(" + cloudAx.toFixed(1) + " 70)");
+        $("cloudB").setAttribute("transform", "translate(" + cloudBx.toFixed(1) + " 130)");
+
+        // the sun's rays rotate very slowly, just enough to feel alive
+        $("sunRays").setAttribute("transform", "rotate(" + (clock * 2.5).toFixed(1) + ")");
+
+        // birds flap and glide left to right, each on its own lane/speed
+        for (var k = 0; k < birds.length; k++) {
+            var bd = birds[k];
+            var bx = ((bd.x0 + clock * bd.sp) % 960) - 60;
+            var by = bd.by + Math.sin(clock * 1.4 + bd.ph) * 6;
+            var flap = Math.sin(clock * 9 + bd.ph) * 6;
+            bd.el.setAttribute("d", "M-10 0 Q-5 " + (-6 - flap) + " 0 0 Q5 " + (-6 - flap) + " 10 0");
+            bd.el.setAttribute("transform", "translate(" + bx.toFixed(1) + " " + by.toFixed(1) + ")");
+        }
+    }
+
+    step(0.016);
+    requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

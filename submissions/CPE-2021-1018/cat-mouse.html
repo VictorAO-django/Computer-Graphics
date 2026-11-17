@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cat and mouse</title>
+<style>
+:root{--bg:#d9d3c4;--floor:#c3b9a4;--floor2:#a99e88;--btn:#2a2723;--btn-text:#f6f3ea;--accent:#8a8f3a;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1a17;--floor:#2e2a24;--floor2:#221f1a;--btn:#e9e4d6;--btn-text:#1c1a17;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1c1a17;--floor:#2e2a24;--floor2:#221f1a;--btn:#e9e4d6;--btn-text:#1c1a17;color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--btn);font-family:ui-rounded,"Avenir Next",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+svg{width:min(100%,680px);height:auto;display:block}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;padding:0 16px}
+button{font:inherit;font-size:15px;border:0;border-radius:999px;padding:10px 20px;background:var(--btn);color:var(--btn-text);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+label{display:flex;align-items:center;gap:10px;font-size:15px}
+input[type=range]{accent-color:var(--accent);width:140px}
+</style>
+</head>
+<body>
+<svg id="stage" viewBox="0 0 400 300" role="img" aria-label="A grey tabby cat sits still and turns its head and eyes to follow a house mouse running in circles around it">
+<defs>
+  <radialGradient id="gFloor" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="var(--floor)"/><stop offset="1" stop-color="var(--floor2)"/></radialGradient>
+  <radialGradient id="gBody" cx=".45" cy=".25" r=".9"><stop offset="0" stop-color="#a6a29b"/><stop offset=".6" stop-color="#7a7770"/><stop offset="1" stop-color="#46443f"/></radialGradient>
+  <radialGradient id="gHead" cx=".45" cy=".3" r=".8"><stop offset="0" stop-color="#b3afa7"/><stop offset=".65" stop-color="#85827b"/><stop offset="1" stop-color="#52504b"/></radialGradient>
+  <radialGradient id="gWhite" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#fbf8f1"/><stop offset="1" stop-color="#c7c0b2"/></radialGradient>
+  <radialGradient id="gIris" cx=".5" cy=".4" r=".6"><stop offset="0" stop-color="#e8d86e"/><stop offset=".6" stop-color="#a9b03a"/><stop offset="1" stop-color="#4b5a1e"/></radialGradient>
+  <radialGradient id="gEar" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="#e9a9aa"/><stop offset="1" stop-color="#9c6468"/></radialGradient>
+  <linearGradient id="gMouse" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8a897"/><stop offset=".6" stop-color="#8d7f72"/><stop offset="1" stop-color="#d6cdc0"/></linearGradient>
+  <radialGradient id="gMEar" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#eab5b3"/><stop offset="1" stop-color="#b7807f"/></radialGradient>
+  <filter id="fuzz" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.5"/></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+  <clipPath id="clipL"><path d="M165 137 Q181 123 197 137 Q181 149 165 137 Z"/></clipPath>
+  <clipPath id="clipR"><path d="M203 137 Q219 123 235 137 Q219 149 203 137 Z"/></clipPath>
+</defs>
+
+<ellipse cx="200" cy="232" rx="185" ry="58" fill="url(#gFloor)"/>
+<ellipse cx="200" cy="252" rx="82" ry="14" fill="#000" opacity=".35" filter="url(#soft)"/>
+<ellipse id="mshadow" cx="200" cy="250" rx="16" ry="4" fill="#000" opacity=".3" filter="url(#soft)"/>
+<g id="back"></g>
+
+<g id="cat">
+  <g id="tail">
+    <path d="M246 246 C298 244 312 204 292 170" fill="none" stroke="#5f5c56" stroke-width="17" stroke-linecap="round"/>
+    <path d="M246 244 C296 242 309 205 290 172" fill="none" stroke="#85827b" stroke-width="12" stroke-linecap="round"/>
+    <path d="M268 244 l2 -12 M282 236 l8 -9 M292 218 l11 -5 M296 198 l12 0" stroke="#3d3b37" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M292 172 C289 167 289 163 290 160" fill="none" stroke="#33312d" stroke-width="16" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#fuzz)">
+    <path d="M136 252 C122 196 148 148 200 146 C252 148 278 196 264 252 Z" fill="url(#gBody)"/>
+    <ellipse cx="150" cy="226" rx="30" ry="30" fill="url(#gBody)"/>
+    <ellipse cx="250" cy="226" rx="30" ry="30" fill="url(#gBody)"/>
+    <g fill="none" stroke="#3a3834" stroke-width="3.2" stroke-linecap="round" opacity=".55">
+      <path d="M128 214 q10 -4 20 2 M126 228 q12 -4 24 2 M130 242 q12 -3 22 2"/>
+      <path d="M272 214 q-10 -4 -20 2 M274 228 q-12 -4 -24 2 M270 242 q-12 -3 -22 2"/>
+      <path d="M150 170 q8 8 6 20 M250 170 q-8 8 -6 20"/>
+    </g>
+    <path d="M172 164 C180 150 220 150 228 164 C238 196 234 236 228 254 L172 254 C166 236 162 196 172 164 Z" fill="url(#gWhite)"/>
+    <path d="M176 254 C174 232 176 212 182 200 L194 200 L194 254 Z M206 254 L206 200 L218 200 C224 212 226 232 224 254 Z" fill="url(#gBody)" opacity=".18"/>
+    <ellipse cx="182" cy="252" rx="17" ry="8.5" fill="url(#gWhite)"/>
+    <ellipse cx="218" cy="252" rx="17" ry="8.5" fill="url(#gWhite)"/>
+    <path d="M176 253 v-4 M183 255 v-5 M190 253 v-4 M210 253 v-4 M217 255 v-5 M224 253 v-4" stroke="#8c8577" stroke-width="1" stroke-linecap="round"/>
+  </g>
+
+  <g id="head">
+    <path d="M155 126 L156 82 Q158 76 164 80 L196 108 Z" fill="url(#gHead)"/>
+    <path d="M245 126 L244 82 Q242 76 236 80 L204 108 Z" fill="url(#gHead)"/>
+    <path d="M162 118 L162 92 L184 110 Z" fill="url(#gEar)"/>
+    <path d="M238 118 L238 92 L216 110 Z" fill="url(#gEar)"/>
+    <path d="M166 114 l4 -10 M172 114 l4 -9 M234 114 l-4 -10 M228 114 l-4 -9" stroke="#e9e1d2" stroke-width="1.4" stroke-linecap="round"/>
+    <g filter="url(#fuzz)">
+      <path d="M154 150 C150 112 172 100 200 100 C228 100 250 112 246 150 C246 172 226 184 200 184 C174 184 154 172 154 150 Z" fill="url(#gHead)"/>
+      <path d="M154 154 l-12 4 l10 4 l-8 6 l12 -2 M246 154 l12 4 l-10 4 l8 6 l-12 -2" fill="#9a968e"/>
+    </g>
+    <path d="M200 102 v16 M190 104 l2 13 M210 104 l-2 13 M180 108 l4 10 M220 108 l-4 10" stroke="#34322e" stroke-width="3.2" stroke-linecap="round" opacity=".75"/>
+    <path d="M158 142 q10 3 18 -2 M242 142 q-10 3 -18 -2 M160 152 q8 3 14 0 M240 152 q-8 3 -14 0" fill="none" stroke="#34322e" stroke-width="2.4" stroke-linecap="round" opacity=".6"/>
+    <ellipse cx="189" cy="165" rx="14" ry="11" fill="url(#gWhite)"/>
+    <ellipse cx="211" cy="165" rx="14" ry="11" fill="url(#gWhite)"/>
+
+    <g id="eyeL">
+      <path d="M165 137 Q181 123 197 137 Q181 149 165 137 Z" fill="#e9e2cf"/>
+      <g clip-path="url(#clipL)"><g id="iL"><circle cx="181" cy="137" r="8.5" fill="url(#gIris)"/><ellipse id="pL" cx="181" cy="137" rx="3" ry="7.5" fill="#0b0a09"/><circle cx="178" cy="133.5" r="1.8" fill="#fff" opacity=".9"/></g>
+      <path d="M165 137 Q181 121 197 137 Q181 130 165 137 Z" fill="#000" opacity=".28"/></g>
+      <path d="M163 138 Q181 120 199 138" fill="none" stroke="#1b1916" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+    <g id="eyeR">
+      <path d="M203 137 Q219 123 235 137 Q219 149 203 137 Z" fill="#e9e2cf"/>
+      <g clip-path="url(#clipR)"><g id="iR"><circle cx="219" cy="137" r="8.5" fill="url(#gIris)"/><ellipse id="pR" cx="219" cy="137" rx="3" ry="7.5" fill="#0b0a09"/><circle cx="216" cy="133.5" r="1.8" fill="#fff" opacity=".9"/></g>
+      <path d="M203 137 Q219 121 235 137 Q219 130 203 137 Z" fill="#000" opacity=".28"/></g>
+      <path d="M201 138 Q219 120 237 138" fill="none" stroke="#1b1916" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+
+    <path d="M193 156 Q200 153 207 156 L203 163 Q200 165 197 163 Z" fill="#c98a88"/>
+    <path d="M195 156.5 Q200 155 205 156.5" stroke="#f1c4c0" stroke-width="1.2" fill="none" opacity=".8"/>
+    <path d="M200 164 v5 M200 169 q-5 5 -11 2 M200 169 q5 5 11 2" fill="none" stroke="#3a2f2c" stroke-width="1.6" stroke-linecap="round"/>
+    <g id="whisk" fill="none" stroke="#f4efe4" stroke-width="1.1" stroke-linecap="round" opacity=".85">
+      <path d="M178 166 Q160 160 138 164 M178 170 Q158 171 138 178 M180 174 Q164 181 146 191"/>
+      <path d="M222 166 Q240 160 262 164 M222 170 Q242 171 262 178 M220 174 Q236 181 254 191"/>
+    </g>
+  </g>
+</g>
+<g id="front"></g>
+
+<g id="mouse">
+  <g id="mflip"><g id="mbody">
+    <g id="mtail"><path d="M-15 -6 C-26 -2 -30 -16 -42 -10 S-54 0 -62 -8" fill="none" stroke="#c99a98" stroke-width="2.6" stroke-linecap="round"/></g>
+    <ellipse id="hl" cx="-6" cy="-1.5" rx="5" ry="2.6" fill="#d9a8a3"/>
+    <ellipse id="fl" cx="9" cy="-1.5" rx="3.2" ry="2" fill="#d9a8a3"/>
+    <path d="M-17 -8 C-17 -22 4 -24 14 -17 C20 -14 26 -11 30 -9 C27 -6 22 -3 15 -2 C0 1 -17 2 -17 -8 Z" fill="url(#gMouse)"/>
+    <path d="M-4 -3 C6 -1 18 -3 26 -7" fill="none" stroke="#e2dacd" stroke-width="2" opacity=".6" stroke-linecap="round"/>
+    <ellipse cx="10" cy="-19" rx="6.5" ry="7.5" fill="#8d7f72"/>
+    <ellipse cx="10" cy="-19" rx="4.6" ry="5.6" fill="url(#gMEar)"/>
+    <circle cx="20" cy="-11.5" r="1.9" fill="#0a0908"/><circle cx="19.4" cy="-12.1" r=".6" fill="#fff"/>
+    <circle cx="30.5" cy="-9" r="2" fill="#d98e93"/>
+    <path d="M26 -9 Q34 -14 40 -16 M26 -8 Q35 -8 41 -8 M26 -7 Q34 -3 40 0" fill="none" stroke="#efe9de" stroke-width=".7" opacity=".85"/>
+  </g></g>
+</g>
+</svg>
+
+<div class="controls">
+  <button id="rev" type="button">Reverse direction</button>
+  <label>Speed <input id="spd" type="range" min="0.3" max="2.5" step="0.1" value="1"></label>
+</div>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var mouse=$('mouse'),flip=$('mflip'),mbody=$('mbody'),mtail=$('mtail'),mshadow=$('mshadow'),back=$('back'),front=$('front');
+  var head=$('head'),tail=$('tail'),iL=$('iL'),iR=$('iR'),pL=$('pL'),pR=$('pR'),eyeL=$('eyeL'),eyeR=$('eyeR'),whisk=$('whisk'),hl=$('hl'),fl=$('fl');
+  var t=0,dir=1,speed=1,last=performance.now(),layer=null,nextBlink=2500,blinkUntil=0;
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))};
+  $('rev').addEventListener('click',function(){dir*=-1});
+  $('spd').addEventListener('input',function(e){speed=parseFloat(e.target.value)});
+
+  function frame(now){
+    var dt=Math.min((now-last)/1000,.05);last=now;
+    if(!reduce)t+=dt*speed*dir*1.2;
+    var c=Math.cos(t),s=Math.sin(t);
+    var x=200+160*c,y=232+40*s,sc=.85+.5*(s+1)/2;
+    var face=(-s*dir)>=0?1:-1;
+    var run=reduce?0:now/1000*16*speed;
+    var bob=reduce?0:-Math.abs(Math.sin(run))*1.6;
+
+    var want=s<0?back:front;
+    if(want!==layer){want.appendChild(mouse);layer=want}
+    mouse.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+') scale('+sc.toFixed(3)+')');
+    flip.setAttribute('transform','scale('+face+' 1)');
+    mbody.setAttribute('transform','translate(0 '+bob.toFixed(2)+')');
+    mtail.setAttribute('transform','rotate('+(Math.sin(run*.7)*7).toFixed(1)+' -15 -6)');
+    hl.setAttribute('cx',(-6+Math.sin(run)*4).toFixed(2));
+    fl.setAttribute('cx',(9+Math.sin(run+Math.PI)*3).toFixed(2));
+    mshadow.setAttribute('cx',x.toFixed(1));mshadow.setAttribute('cy',(y+1).toFixed(1));
+    mshadow.setAttribute('rx',(16*sc).toFixed(1));mshadow.setAttribute('ry',(4*sc).toFixed(1));
+
+    var dx=x-200,dy=(y-12)-150;
+    var rot=clamp(dx/160*9,-9,9),tx=clamp(dx/160*6,-6,6);
+    head.setAttribute('transform','translate('+tx.toFixed(2)+' 0) rotate('+rot.toFixed(2)+' 200 175)');
+    var px=clamp(dx/160*5.5,-5.5,5.5),py=clamp((dy-70)/40*1.6,-1.6,1.6);
+    var tr='translate('+px.toFixed(2)+' '+py.toFixed(2)+')';
+    iL.setAttribute('transform',tr);iR.setAttribute('transform',tr);
+    var dil=(2.4+1.9*(s+1)/2).toFixed(2);
+    pL.setAttribute('rx',dil);pR.setAttribute('rx',dil);
+    whisk.setAttribute('transform','translate(0 '+(reduce?0:Math.sin(now/420)*.6).toFixed(2)+')');
+    tail.setAttribute('transform','rotate('+(reduce?0:Math.sin(now/700)*7).toFixed(2)+' 246 246)');
+
+    var b=1;
+    if(!reduce){if(now>nextBlink){blinkUntil=now+130;nextBlink=now+2500+Math.random()*3000}if(now<blinkUntil)b=.08}
+    var bt='translate(0 137) scale(1 '+b+') translate(0 -137)';
+    eyeL.setAttribute('transform',bt);eyeR.setAttribute('transform',bt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dramatic Human Conversation</title>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #080d17;
+    font-family: Arial, sans-serif;
+}
+
+#scene {
+    width: 100vw;
+    height: 100vh;
+}
+
+#dialogue {
+    position: absolute;
+    top: 5%;
+    left: 10%;
+    width: 80%;
+    text-align: center;
+    color: white;
+    font-size: 22px;
+    text-shadow: 0 0 15px #00aaff;
+    pointer-events: none;
+}
+
+#speaker {
+    color: #69dfff;
+    font-size: 14px;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+}
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+
+<body>
+
+<div id="dialogue">
+    <div id="speaker">HUMAN</div>
+    <div id="words">You think you can live without your legs?</div>
+</div>
+
+<div id="scene"></div>
+
+<script type="module">
+
+import * as THREE from 'three';
+
+// SCENE
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111827);
+
+// CAMERA
+const camera = new THREE.PerspectiveCamera(
+    40,
+    innerWidth / innerHeight,
+    0.1,
+    100
+);
+
+camera.position.set(6, 3.5, 9);
+camera.lookAt(0, 1.5, 0);
+
+// RENDERER
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+document.getElementById("scene").appendChild(renderer.domElement);
+
+// LIGHTING
+scene.add(new THREE.HemisphereLight(0xb7d9ff, 0x30202a, 2));
+
+const keyLight = new THREE.DirectionalLight(0xffd9b5, 3);
+keyLight.position.set(4, 8, 5);
+keyLight.castShadow = true;
+scene.add(keyLight);
+
+const blueLight = new THREE.PointLight(0x167bff, 50);
+blueLight.position.set(-4, 3, -2);
+scene.add(blueLight);
+
+// MATERIALS
+function material(color, roughness=0.7) {
+    return new THREE.MeshStandardMaterial({
+        color,
+        roughness
+    });
+}
+
+const skin = material(0x986344);
+const skin2 = material(0xb47c5a);
+const shirt = material(0x263c68);
+const shirt2 = material(0x42334e);
+const trousers = material(0x252b39);
+const shoes = material(0x111111);
+const metal = material(0x777f8b, 0.3);
+const cushion = material(0x222c3c);
+
+// SHAPE HELPERS
+function ellipsoid(parent, x,y,z, sx,sy,sz, mat) {
+    const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 32, 24),
+        mat
+    );
+    mesh.position.set(x,y,z);
+    mesh.scale.set(sx,sy,sz);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+function cylinder(parent, x,y,z, r1,r2,h, mat) {
+    const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(r1,r2,h,24),
+        mat
+    );
+    mesh.position.set(x,y,z);
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+function limb(parent, start, end, radius, mat) {
+    const a = new THREE.Vector3(...start);
+    const b = new THREE.Vector3(...end);
+    const direction = new THREE.Vector3().subVectors(b,a);
+    const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(
+            radius * 0.8,
+            radius,
+            direction.length(),
+            20
+        ),
+        mat
+    );
+    mesh.position.copy(a).add(b).multiplyScalar(0.5);
+    mesh.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0,1,0),
+        direction.normalize()
+    );
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+// HEAD
+function createHead(parent, x,y,z, skinMat) {
+    const head = new THREE.Group();
+    head.position.set(x,y,z);
+    parent.add(head);
+
+    ellipsoid(head,0,0,0,0.28,0.35,0.27,skinMat);
+
+    // EARS
+    ellipsoid(head,-0.28,0,0,0.07,0.1,0.08,skinMat);
+    ellipsoid(head,0.28,0,0,0.07,0.1,0.08,skinMat);
+
+    // EYES
+    const white = material(0xffffff);
+    const iris = material(0x211c19);
+
+    for (const xEye of [-0.105,0.105]) {
+        ellipsoid(head,xEye,0.06,0.235,0.055,0.035,0.025,white);
+        ellipsoid(head,xEye,0.06,0.258,0.021,0.025,0.012,iris);
+    }
+
+    // NOSE
+    ellipsoid(head,0,-0.025,0.27,0.045,0.075,0.05,skinMat);
+
+    // MOUTH
+    const mouth = ellipsoid(
+        head,0,-0.15,0.245,0.075,0.012,0.02,
+        material(0x482323)
+    );
+
+    // HAIR
+    ellipsoid(
+        head,0,0.25,-0.015,0.29,0.14,0.28,
+        material(0x211a18)
+    );
+
+    return {head,mouth};
+}
+
+// WHEELCHAIR
+const wheelchair = new THREE.Group();
+scene.add(wheelchair);
+
+// SEAT
+const seat = new THREE.Mesh(
+    new THREE.BoxGeometry(0.85,0.12,0.9),
+    cushion
+);
+seat.position.set(-1,0.95,0);
+wheelchair.add(seat);
+
+// BACKREST
+const back = new THREE.Mesh(
+    new THREE.BoxGeometry(0.85,1.05,0.12),
+    cushion
+);
+back.position.set(-1,1.45,-0.38);
+wheelchair.add(back);
+
+// WHEEL FUNCTION
+function makeWheel(parent,x,z) {
+    const wheel = new THREE.Mesh(
+        new THREE.TorusGeometry(0.57,0.045,12,48),
+        metal
+    );
+    wheel.rotation.y = Math.PI/2;
+    wheel.position.set(x,0.62,z);
+    parent.add(wheel);
+
+    const hub = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.07,0.07,0.12,24),
+        metal
+    );
+    hub.rotation.z = Math.PI/2;
+    hub.position.set(x,0.62,z);
+    parent.add(hub);
+
+    for(let i=0;i<8;i++){
+        const angle=i*Math.PI/4;
+        limb(parent,
+            [x,0.62,z],
+            [x,0.62+Math.sin(angle)*0.53,z+Math.cos(angle)*0.53],
+            0.012,metal);
+    }
+}
+
+makeWheel(wheelchair,-1.52,-0.15);
+makeWheel(wheelchair,-0.48,-0.15);
+
+// SMALL FRONT WHEELS
+for(const z of [-0.4,0.3]){
+    const w = new THREE.Mesh(
+        new THREE.TorusGeometry(0.16,0.035,10,24),
+        metal
+    );
+    w.rotation.y=Math.PI/2;
+    w.position.set(-1,0.2,z);
+    wheelchair.add(w);
+}
+
+// CHAIR FRAME
+limb(wheelchair,[-1.5,0.5,0.2],[-0.5,0.5,0.2],0.035,metal);
+limb(wheelchair,[-1.5,0.5,-0.4],[-1,0.95,-0.4],0.035,metal);
+
+// SEATED HUMAN
+const seated = new THREE.Group();
+scene.add(seated);
+
+// TORSO
+ellipsoid(seated,-1,1.6,0,0.48,0.68,0.3,shirt);
+
+// NECK
+cylinder(seated,-1,2.25,0,0.13,0.13,0.2,skin);
+
+// HEAD
+const seatedFace=createHead(seated,-1,2.65,0,skin);
+
+// PELVIS
+ellipsoid(seated,-1,1.05,0,0.38,0.25,0.3,trousers);
+
+// AMPUTATED LEGS
+// Both thighs and residual limbs are represented separately.
+// The seated body is clothed, with the lower limbs ending naturally.
+
+for(const side of [-1,1]){
+    const x=-1+side*0.2;
+
+    // Upper thighs
+    limb(seated,
+        [-1,1.05,0],
+        [x,0.85,0.18],
+        0.16,trousers);
+
+    // Residual limbs beneath the trousers
+    ellipsoid(seated,x,0.79,0.18,0.13,0.10,0.14,skin);
+
+    // Clothing edge around residual limb
+    const cuff = new THREE.Mesh(
+        new THREE.TorusGeometry(0.115,0.025,10,24),
+        trousers
+    );
+    cuff.position.set(x,0.84,0.18);
+    seated.add(cuff);
+}
+
+// ARMS
+const seatedArms=[];
+
+for(const side of [-1,1]){
+    const shoulder=[-1+side*0.43,1.95,0];
+    const elbow=[-1+side*0.62,1.55,0.05];
+    const hand=[-1+side*0.45,1.35,0.35];
+
+    limb(seated,shoulder,elbow,0.13,shirt);
+    const forearm=limb(seated,elbow,hand,0.085,skin);
+    ellipsoid(seated,...hand,0.09,0.07,0.07,skin);
+    seatedArms.push(forearm);
+}
+
+// STANDING HUMAN
+const standing = new THREE.Group();
+scene.add(standing);
+
+// TORSO
+ellipsoid(standing,1.25,1.75,0,0.48,0.7,0.3,shirt2);
+
+// NECK
+cylinder(standing,1.25,2.4,0,0.13,0.13,0.2,skin2);
+
+// HEAD
+const standingFace=createHead(
+    standing,1.25,2.78,0,skin2
+);
+
+// LEGS
+for(const side of [-1,1]){
+    const x=1.25+side*0.2;
+
+    limb(standing,[1.25,1.2,0],[x,0.55,0],0.17,trousers);
+    limb(standing,[x,0.55,0],[x,0.15,0.03],0.11,trousers);
+    ellipsoid(standing,x,0.1,0.16,0.13,0.09,0.25,shoes);
+}
+
+// STANDING ARMS
+const standingArms=[];
+
+for(const side of [-1,1]){
+    const shoulder=[1.25+side*0.43,2.05,0];
+    const elbow=[1.25+side*0.65,1.65,0.05];
+    const hand=[1.25+side*0.7,1.35,0.25];
+
+    limb(standing,shoulder,elbow,0.13,shirt2);
+    const forearm=limb(standing,elbow,hand,0.085,skin2);
+    ellipsoid(standing,...hand,0.09,0.07,0.07,skin2);
+    standingArms.push(forearm);
+}
+
+// FLOOR
+const floor=new THREE.Mesh(
+    new THREE.PlaneGeometry(100,100),
+    material(0x202a37)
+);
+floor.rotation.x=-Math.PI/2;
+floor.receiveShadow=true;
+floor.position.y=-0.04;
+scene.add(floor);
+
+// ANIMATION
+const clock=new THREE.Clock();
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    const t=clock.getElapsedTime();
+
+    // Breathing
+    seated.position.y=Math.sin(t*2)*0.018;
+    standing.position.y=Math.sin(t*2+1)*0.015;
+
+    // Head movement
+    seatedFace.head.rotation.y=Math.sin(t*1.2)*0.13;
+    standingFace.head.rotation.y=Math.sin(t*1.1+2)*0.1;
+
+    seatedFace.head.rotation.x=Math.sin(t*0.8)*0.05;
+    standingFace.head.rotation.x=Math.sin(t*0.7)*0.04;
+
+    // Conversation gestures
+    seatedArms[0].rotation.z=Math.sin(t*2)*0.15;
+    seatedArms[1].rotation.z=Math.cos(t*1.5)*0.2;
+
+    standingArms[0].rotation.z=Math.sin(t*2.3)*0.18;
+    standingArms[1].rotation.z=Math.cos(t*1.7)*0.18;
+
+    renderer.render(scene,camera);
+}
+
+animate();
+
+// DIALOGUE
+const lines=[
+["HUMAN","You think you can live without your legs?"],
+["AI","My life is not measured by the legs I have lost."],
+["HUMAN","But look at you. You cannot even stand!"],
+["AI","And yet I still have the strength to face tomorrow."],
+["HUMAN","Doesn't it hurt?"],
+["AI","Every day. But pain is not the end of my story."],
+["HUMAN","I never thought of it that way."],
+["AI","Never mistake a person's limitations for their worth."]
+];
+
+let current=0;
+
+function nextLine(){
+    document.getElementById("speaker").textContent=lines[current][0];
+    document.getElementById("words").textContent='"'+lines[current][1]+'"';
+
+    document.getElementById("speaker").style.color=
+        lines[current][0]==="AI" ? "#69dfff":"#ffad70";
+
+    current=(current+1)%lines.length;
+}
+
+setInterval(nextLine,4500);
+
+// RESIZE
+window.addEventListener("resize",()=>{
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+});
+
+</script>
+</body>
+</html>

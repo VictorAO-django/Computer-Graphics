@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>computer-graphics-animation</title>
+
+  <!-- style.css wasn't included, so this is the same reset used in the
+       rotating-car file. Edit it here if your real style.css differs. -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #09090d;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+
+  <!-- Lets the module script below use `import * as THREE from 'three'`
+       without a build step. Needs an internet connection to load Three.js. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import * as THREE from 'three'
+
+    // ==================================================================
+    // createCat  (was ./Scenes/catMouse.js)
+    // ==================================================================
+
+    // Function for creating our cat
+    function createCat(THREE) {
+
+      // Create a group to hold all the cat's body parts
+      const cat = new THREE.Group()
+
+      // Create the cat's material
+      const catMaterial = new THREE.MeshStandardMaterial({
+        color: 0xE88B35
+      })
+
+      // Create the body geometry
+      const bodyGeometry = new THREE.SphereGeometry(1, 32, 32)
+
+      // Create the body mesh
+      const body = new THREE.Mesh(bodyGeometry, catMaterial)
+
+      // Adjust the body's proportions
+      body.scale.set(0.65, 0.45, 0.78)
+
+      // Add the body to the cat group
+      cat.add(body)
+
+      // GINGER TABBY BODY STRIPES
+
+      const stripeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x873B16,
+        roughness: 0.8
+      })
+
+      const bodyStripes = new THREE.Group()
+      body.add(bodyStripes)
+
+      // Function for creating curved stripes on the body
+      function createStripe(points) {
+        const curve = new THREE.CatmullRomCurve3(
+          points.map(p => new THREE.Vector3(...p))
+        )
+
+        const geometry = new THREE.TubeGeometry(
+          curve,
+          24,
+          0.025,
+          8,
+          false
+        )
+
+        const stripe = new THREE.Mesh(
+          geometry,
+          stripeMaterial
+        )
+
+        bodyStripes.add(stripe)
+      }
+
+      // Wider stripes covering more of the back
+      for (let i = 0; i < 8; i++) {
+        const z = -0.72 + i * 0.20
+
+        const points = []
+
+        for (let j = 0; j <= 10; j++) {
+          const x = -0.65 + j * 0.13
+          const distance = x * x + z * z
+
+          if (distance < 0.95) {
+            const y = Math.sqrt(1 - distance) + 0.035
+            points.push([x, y, z])
+          }
+        }
+
+        if (points.length > 2) {
+          createStripe(points)
+        }
+      }
+
+      // Stripes along both sides of the cat
+      for (const side of [-1, 1]) {
+        for (let i = 0; i < 5; i++) {
+
+          const z = -0.55 + i * 0.25
+          const points = []
+
+          for (let j = 0; j <= 10; j++) {
+            const angle = 0.35 + j * 0.105
+
+            const x = side * Math.sin(angle) * 0.98
+            const y = Math.cos(angle) * 0.68
+
+            points.push([x, y, z])
+          }
+
+          createStripe(points)
+        }
+      }
+
+      // Create a group for the head and its features
+      const head = new THREE.Group()
+
+      // Position the head above the body
+      head.position.set(0, 0.65, 0.58)
+      head.scale.setScalar(0.85)
+
+      // Create the head geometry
+      const headGeometry = new THREE.SphereGeometry(0.55, 32, 32)
+
+      // Create the head mesh
+      const headMesh = new THREE.Mesh(headGeometry, catMaterial)
+
+      // Add the head mesh to the head group
+      head.add(headMesh)
+
+      // GINGER TABBY FOREHEAD MARKINGS
+
+      const foreheadStripeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x873B16,
+        roughness: 0.85
+      })
+
+      // Helper function for smooth forehead stripes
+      function createForeheadStripe(points) {
+        const curve = new THREE.CatmullRomCurve3(
+          points.map(p => new THREE.Vector3(...p))
+        )
+
+        const geometry = new THREE.TubeGeometry(
+          curve,
+          20,
+          0.018,
+          8,
+          false
+        )
+
+        const stripe = new THREE.Mesh(
+          geometry,
+          foreheadStripeMaterial
+        )
+
+        head.add(stripe)
+      }
+
+      // Left side of the M marking
+      createForeheadStripe([
+        [-0.28, 0.34, 0.40],
+        [-0.22, 0.43, 0.44],
+        [-0.12, 0.46, 0.47],
+        [-0.04, 0.34, 0.51]
+      ])
+
+      // Right side of the M marking
+      createForeheadStripe([
+        [0.28, 0.34, 0.40],
+        [0.22, 0.43, 0.44],
+        [0.12, 0.46, 0.47],
+        [0.04, 0.34, 0.51]
+      ])
+
+      // Small central forehead stripe
+      createForeheadStripe([
+        [0, 0.48, 0.47],
+        [0, 0.40, 0.52],
+        [0, 0.32, 0.54]
+      ])
+
+      // Add the head group to the cat
+      cat.add(head)
+
+      // Create a darker material for the ears
+      const earMaterial = new THREE.MeshStandardMaterial({
+        color: 0xA84F20
+      })
+
+      // Create the ear geometry
+      const earGeometry = new THREE.ConeGeometry(0.18, 0.4, 4)
+
+      // Left ear
+      const leftEar = new THREE.Mesh(earGeometry, earMaterial)
+      leftEar.position.set(-0.35, 0.45, 0)
+      head.add(leftEar)
+
+      // Right ear
+      const rightEar = new THREE.Mesh(earGeometry, earMaterial)
+      rightEar.position.set(0.35, 0.45, 0)
+      head.add(rightEar)
+
+      // Create the inner ears
+      const innerEarMaterial = new THREE.MeshStandardMaterial({
+        color: 0xF4A0A0
+      })
+
+      const innerEarGeometry = new THREE.ConeGeometry(0.09, 0.25, 4)
+
+      // Left inner ear
+      const leftInnerEar = new THREE.Mesh(innerEarGeometry, innerEarMaterial)
+      leftInnerEar.position.set(-0.35, 0.45, 0.105)
+      head.add(leftInnerEar)
+
+      // Right inner ear
+      const rightInnerEar = new THREE.Mesh(innerEarGeometry, innerEarMaterial)
+      rightInnerEar.position.set(0.35, 0.45, 0.105)
+      head.add(rightInnerEar)
+
+      // Create the eye material
+      const eyeWhiteMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFFF5E8
+      })
+
+      const eyeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x24150D
+      })
+
+      const pupilMaterial = new THREE.MeshStandardMaterial({
+        color: 0x000000
+      })
+
+      const eyeGeometry = new THREE.SphereGeometry(0.07, 24, 24)
+
+      // Left eye
+      const leftEye = new THREE.Mesh(eyeGeometry, eyeWhiteMaterial)
+      leftEye.position.set(-0.2, 0.035, 0.49)
+      head.add(leftEye)
+
+      const leftPupil = new THREE.Mesh(
+        new THREE.SphereGeometry(0.035, 20, 20),
+        pupilMaterial
+      )
+      leftPupil.position.set(-0.2, 0.035, 0.555)
+      head.add(leftPupil)
+
+      // Right eye
+      const rightEye = new THREE.Mesh(eyeGeometry, eyeWhiteMaterial)
+      rightEye.position.set(0.2, 0.035, 0.49)
+      head.add(rightEye)
+
+      const rightPupil = new THREE.Mesh(
+        new THREE.SphereGeometry(0.035, 20, 20),
+        pupilMaterial
+      )
+      rightPupil.position.set(0.2, 0.035, 0.555)
+      head.add(rightPupil)
+
+      // Create the nose
+      const noseGeometry = new THREE.SphereGeometry(0.07, 16, 16)
+
+      const noseMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFF69B4
+      })
+
+      const nose = new THREE.Mesh(noseGeometry, noseMaterial)
+      nose.position.set(0, -0.12, 0.53)
+      head.add(nose)
+
+      // Create the muzzle
+      const muzzleMaterial = new THREE.MeshStandardMaterial({
+        color: 0xF5D6B5
+      })
+
+      const muzzleGeometry = new THREE.SphereGeometry(0.16, 24, 24)
+
+      // Left muzzle
+      const leftMuzzle = new THREE.Mesh(muzzleGeometry, muzzleMaterial)
+      leftMuzzle.scale.set(1, 0.8, 0.65)
+      leftMuzzle.position.set(-0.11, -0.18, 0.48)
+      head.add(leftMuzzle)
+
+      // Right muzzle
+      const rightMuzzle = new THREE.Mesh(muzzleGeometry, muzzleMaterial)
+      rightMuzzle.scale.set(1, 0.8, 0.65)
+      rightMuzzle.position.set(0.11, -0.18, 0.48)
+      head.add(rightMuzzle)
+
+      // Create white cat whiskers
+      const whiskerMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFFF8E9,
+        roughness: 0.7
+      })
+
+      const whiskerGeometry = new THREE.CylinderGeometry(
+        0.004,
+        0.008,
+        0.42,
+        8
+      )
+
+      // Left whiskers
+      for (let i = 0; i < 3; i++) {
+        const whisker = new THREE.Mesh(
+          whiskerGeometry,
+          whiskerMaterial
+        )
+
+        whisker.position.set(
+          -0.29,
+          -0.16 - i * 0.045,
+          0.48
+        )
+
+        whisker.rotation.z = Math.PI / 2 + (i - 1) * 0.22
+        whisker.rotation.y = -0.12
+        head.add(whisker)
+      }
+
+      // Right whiskers
+      for (let i = 0; i < 3; i++) {
+        const whisker = new THREE.Mesh(
+          whiskerGeometry,
+          whiskerMaterial
+        )
+
+        whisker.position.set(
+          0.29,
+          -0.16 - i * 0.045,
+          0.48
+        )
+
+        whisker.rotation.z = Math.PI / 2 - (i - 1) * 0.22
+        whisker.rotation.y = 0.12
+        head.add(whisker)
+      }
+
+      // Create the cat's mouth
+      const mouthMaterial = new THREE.MeshStandardMaterial({
+        color: 0x3A2118
+      })
+
+      // Centre line below the nose
+      const mouthLineGeometry = new THREE.BoxGeometry(0.018, 0.09, 0.018)
+      const mouthLine = new THREE.Mesh(mouthLineGeometry, mouthMaterial)
+      mouthLine.position.set(0, -0.25, 0.49)
+      head.add(mouthLine)
+
+      // Left side of the mouth
+      const leftMouth = new THREE.Mesh(
+        new THREE.BoxGeometry(0.09, 0.018, 0.018),
+        mouthMaterial
+      )
+      leftMouth.position.set(-0.045, -0.29, 0.49)
+      leftMouth.rotation.z = -0.35
+      head.add(leftMouth)
+
+      // Right side of the mouth
+      const rightMouth = new THREE.Mesh(
+        new THREE.BoxGeometry(0.09, 0.018, 0.018),
+        mouthMaterial
+      )
+      rightMouth.position.set(0.045, -0.29, 0.49)
+      rightMouth.rotation.z = 0.35
+      head.add(rightMouth)
+
+      // CREATE ARTICULATED CAT LEGS
+
+      const upperLegGeometry = new THREE.CylinderGeometry(
+        0.10, 0.11, 0.36, 16
+      )
+
+      const lowerLegGeometry = new THREE.CylinderGeometry(
+        0.075, 0.09, 0.32, 16
+      )
+
+      const legMaterial = new THREE.MeshStandardMaterial({
+        color: 0xC97832
+      })
+
+      const legs = []
+      const knees = []
+
+      // Front-left, front-right, back-left, back-right
+      const legPositions = [
+        [-0.38, -0.22, 0.48],
+        [0.38, -0.22, 0.48],
+        [-0.38, -0.22, -0.48],
+        [0.38, -0.22, -0.48]
+      ]
+
+      legPositions.forEach((position) => {
+
+        // Hip pivot
+        const hip = new THREE.Group()
+        hip.position.set(...position)
+
+        // Upper leg
+        const upperLeg = new THREE.Mesh(
+          upperLegGeometry,
+          legMaterial
+        )
+
+        upperLeg.position.y = -0.18
+        hip.add(upperLeg)
+
+        // Knee joint
+        const knee = new THREE.Group()
+        knee.position.y = -0.36
+        hip.add(knee)
+
+        // Lower leg
+        const lowerLeg = new THREE.Mesh(
+          lowerLegGeometry,
+          legMaterial
+        )
+
+        lowerLeg.position.y = -0.16
+        knee.add(lowerLeg)
+
+        // Small foot
+        const footGeometry = new THREE.SphereGeometry(0.09, 12, 12)
+        const foot = new THREE.Mesh(footGeometry, legMaterial)
+
+        foot.scale.set(1, 0.65, 1.3)
+        foot.position.set(0, -0.32, 0.035)
+        knee.add(foot)
+
+        cat.add(hip)
+
+        legs.push(hip)
+        knees.push(knee)
+      })
+
+      // Return the completed cat and head
+      return { cat, head, legs, knees, body }
+    }
+
+    // ==================================================================
+    // createMouse  (was ./Scenes/catMouse.js)
+    // ==================================================================
+
+    function createMouse(THREE) {
+      const mouse = new THREE.Group()
+
+      // Body group
+      const mouseBody = new THREE.Group()
+      mouse.add(mouseBody)
+
+      // Mouse body
+      const bodyGeometry = new THREE.SphereGeometry(0.25, 24, 24)
+      const bodyMaterial = new THREE.MeshStandardMaterial({
+        color: 0x888888
+      })
+
+      const body = new THREE.Mesh(bodyGeometry, bodyMaterial)
+      body.scale.set(0.65, 0.55, 1.1)
+      mouseBody.add(body)
+
+      // Ears
+      const earGeometry = new THREE.SphereGeometry(0.1, 16, 16)
+      const earMaterial = new THREE.MeshStandardMaterial({
+        color: 0x555555
+      })
+
+      const leftEar = new THREE.Mesh(earGeometry, earMaterial)
+      leftEar.position.set(-0.2, 0.18, 0)
+      mouseBody.add(leftEar)
+
+      const rightEar = new THREE.Mesh(earGeometry, earMaterial)
+      rightEar.position.set(0.2, 0.18, 0)
+      mouseBody.add(rightEar)
+
+      // Nose
+      const noseGeometry = new THREE.SphereGeometry(0.07, 16, 16)
+      const noseMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFF69B4
+      })
+
+      const nose = new THREE.Mesh(noseGeometry, noseMaterial)
+      nose.position.set(0, 0, 0.35)
+      mouseBody.add(nose)
+
+      // Eyes
+      const eyeGeometry = new THREE.SphereGeometry(0.035, 16, 16)
+      const eyeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x000000
+      })
+
+      const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial)
+      leftEye.position.set(-0.12, 0.12, 0.25)
+      mouseBody.add(leftEye)
+
+      const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial)
+      rightEye.position.set(0.12, 0.12, 0.25)
+      mouseBody.add(rightEye)
+
+      // Tail
+      const tailGeometry = new THREE.CylinderGeometry(0.025, 0.015, 0.7, 8)
+      const tailMaterial = new THREE.MeshStandardMaterial({
+        color: 0x777777
+      })
+
+      const tail = new THREE.Mesh(tailGeometry, tailMaterial)
+      tail.position.set(0, 0, -0.55)
+      tail.rotation.x = Math.PI / 2
+      mouseBody.add(tail)
+
+      // Legs with proper hip pivots
+      const legGeometry = new THREE.CylinderGeometry(0.025, 0.035, 0.16, 8)
+      const legMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 })
+
+      const legs = []
+
+      const legPositions = [
+        [-0.12, -0.12, 0.12],  // Front left
+        [0.12, -0.12, 0.12],   // Front right
+        [-0.12, -0.12, -0.12], // Back left
+        [0.12, -0.12, -0.12]   // Back right
+      ]
+
+      legPositions.forEach((position) => {
+        const legPivot = new THREE.Group()
+        legPivot.position.set(...position)
+
+        const leg = new THREE.Mesh(legGeometry, legMaterial)
+        leg.position.y = -0.08
+
+        legPivot.add(leg)
+        mouse.add(legPivot)
+
+        legs.push(legPivot)
+      })
+
+      return { mouse, legs, mouseBody }
+    }
+
+    // ==================================================================
+    // Scene  (was src/main.js)
+    // ==================================================================
+
+    // Create the 3D scene
+    const scene = new THREE.Scene()
+
+    // Set the background colour
+    scene.background = new THREE.Color(0xc9b9a5)
+
+    // Create the camera
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    )
+
+    // Position the camera
+    camera.position.z = 5
+
+    const catParts = createCat(THREE)
+
+    const cat = catParts.cat
+    const head = catParts.head
+    const catLegs = catParts.legs
+    const catBody = catParts.body
+    const catKnees = catParts.knees
+
+    scene.add(cat)
+
+    const mouseParts = createMouse(THREE)
+
+    const mouse = mouseParts.mouse
+    const mouseLegs = mouseParts.legs
+    const mouseBody = mouseParts.mouseBody
+
+    mouse.position.set(2, -0.76, 0)
+    scene.add(mouse)
+
+    // ===============================
+    // LIVING ROOM ENVIRONMENT
+    // ===============================
+
+    // Wooden floor
+    const floorGeometry = new THREE.PlaneGeometry(20, 20)
+
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: 0x98704e,
+      roughness: 0.85
+    })
+
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial)
+    floor.rotation.x = -Math.PI / 2
+    floor.position.y = -0.9
+    scene.add(floor)
+
+    // Cream-coloured walls
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: 0xe5d5bd,
+      roughness: 1
+    })
+
+    // Back wall
+    const backWall = new THREE.Mesh(
+      new THREE.PlaneGeometry(20, 8),
+      wallMaterial
+    )
+    backWall.position.set(0, 3.1, -10)
+    scene.add(backWall)
+
+    // Left wall
+    const leftWall = new THREE.Mesh(
+      new THREE.PlaneGeometry(20, 8),
+      wallMaterial
+    )
+    leftWall.rotation.y = Math.PI / 2
+    leftWall.position.set(-10, 3.1, 0)
+    scene.add(leftWall)
+
+    // Skirting board
+    const boardMaterial = new THREE.MeshStandardMaterial({
+      color: 0x79563c
+    })
+
+    const skirting = new THREE.Mesh(
+      new THREE.BoxGeometry(20, 0.18, 0.12),
+      boardMaterial
+    )
+    skirting.position.set(0, -0.79, -9.92)
+    scene.add(skirting)
+
+    // Room lighting
+    const roomLight = new THREE.PointLight(0xffe1bd, 45, 30)
+    roomLight.position.set(0, 5, 2)
+    scene.add(roomLight)
+
+    cat.traverse((part) => {
+      if (part.isMesh) {
+        part.castShadow = true
+        part.receiveShadow = true
+      }
+    })
+
+    mouse.traverse((part) => {
+      if (part.isMesh) {
+        part.castShadow = true
+        part.receiveShadow = true
+      }
+    })
+
+    floor.receiveShadow = true
+
+    // Add ambient lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5)
+    scene.add(ambientLight)
+
+    // Add directional lighting
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2)
+    directionalLight.position.set(3, 5, 4)
+    directionalLight.castShadow = true
+    scene.add(directionalLight)
+
+    camera.position.set(0, 1.5, 5)
+    camera.lookAt(0, 0.5, 0)
+
+    // Create the WebGL renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true })
+
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+    // Set the renderer size to fill the browser window
+    renderer.setSize(window.innerWidth, window.innerHeight)
+
+    // Add the renderer's canvas to the webpage
+    document.body.appendChild(renderer.domElement)
+
+    let targetPosition = mouse.position.clone()
+    let isMoving = false
+
+    const raycaster = new THREE.Raycaster()
+    const pointer = new THREE.Vector2()
+
+    // Click / tap the floor to send the mouse there
+    window.addEventListener('pointerdown', (event) => {
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+      raycaster.setFromCamera(pointer, camera)
+
+      const hits = raycaster.intersectObject(floor)
+
+      if (hits.length > 0) {
+        targetPosition.copy(hits[0].point)
+        targetPosition.y = mouse.position.y
+
+        isMoving = true
+      }
+    })
+
+    let walkTime = 0
+    let catWalkTime = 0
+
+    const catLegOffsets = [
+      0,
+      Math.PI / 2,
+      Math.PI,
+      (3 * Math.PI) / 2
+    ]
+
+    // Animation function
+    function animate() {
+      requestAnimationFrame(animate)
+
+      // MOUSE MOVEMENT
+      if (isMoving) {
+        const direction = new THREE.Vector3()
+          .subVectors(targetPosition, mouse.position)
+
+        direction.y = 0
+
+        const distance = direction.length()
+
+        if (distance > 0.04) {
+          direction.normalize()
+
+          // Move at a controlled speed
+          const moveSpeed = 0.025
+          const step = Math.min(moveSpeed, distance)
+
+          mouse.position.addScaledVector(direction, step)
+
+          // Turn towards movement direction
+          const mouseAngle = Math.atan2(direction.x, direction.z)
+
+          const angleDifference = Math.atan2(
+            Math.sin(mouseAngle - mouse.rotation.y),
+            Math.cos(mouseAngle - mouse.rotation.y)
+          )
+
+          mouse.rotation.y += angleDifference * 0.12
+
+          // Walking cycle follows actual distance travelled
+          walkTime += step * 18
+
+          // Diagonal leg coordination
+          mouseLegs[0].rotation.x = Math.sin(walkTime) * 0.7
+          mouseLegs[1].rotation.x = Math.sin(walkTime + Math.PI) * 0.7
+          mouseLegs[2].rotation.x = Math.sin(walkTime + Math.PI) * 0.7
+          mouseLegs[3].rotation.x = Math.sin(walkTime) * 0.7
+
+          // Gentle body movement
+          mouseBody.position.y = Math.abs(Math.sin(walkTime * 2)) * 0.025
+        } else {
+          // Return all legs to their resting positions
+          catLegs.forEach((leg, i) => {
+            leg.rotation.x = 0
+            catKnees[i].rotation.x = 0
+          })
+
+          catBody.position.y = 0
+        }
+      }
+
+      // CAT FOLLOWS THE MOUSE
+      const followDirection = new THREE.Vector3()
+        .subVectors(mouse.position, cat.position)
+
+      followDirection.y = 0
+
+      const followDistance = followDirection.length()
+
+      if (followDistance > 1.2) {
+        followDirection.normalize()
+
+        // Move the cat
+        const catSpeed = 0.018
+        cat.position.addScaledVector(followDirection, catSpeed)
+
+        // Turn towards the mouse
+        const bodyAngle = Math.atan2(
+          followDirection.x,
+          followDirection.z
+        )
+
+        const bodyDifference = Math.atan2(
+          Math.sin(bodyAngle - cat.rotation.y),
+          Math.cos(bodyAngle - cat.rotation.y)
+        )
+
+        cat.rotation.y += bodyDifference * 0.04
+
+        // FOUR-BEAT CAT WALKING CYCLE
+        catWalkTime += catSpeed * 18
+
+        catLegs.forEach((leg, i) => {
+
+          const phase = catWalkTime + catLegOffsets[i]
+
+          // Swing the upper leg forward and backward
+          leg.rotation.x = Math.sin(phase) * 0.45
+
+          // Bend the knee as the leg lifts
+          const lift = Math.max(0, Math.sin(phase))
+
+          catKnees[i].rotation.x = lift * 0.85
+        })
+
+        // Gentle body movement during walking
+        catBody.position.y =
+          Math.abs(Math.sin(catWalkTime * 2)) * 0.025
+
+      } else {
+        // Stop the walking animation
+        catLegs.forEach((leg) => {
+          leg.rotation.x = 0
+        })
+
+        catBody.position.y = 0
+      }
+
+      // CAT WATCHES THE MOUSE
+      const targetAngle = Math.atan2(
+        mouse.position.x - cat.position.x,
+        mouse.position.z - cat.position.z
+      )
+
+      const headTarget = targetAngle - cat.rotation.y
+
+      // Keep the head within a natural turning range
+      const maxHeadTurn = Math.PI / 3
+
+      const limitedHeadTarget = THREE.MathUtils.clamp(
+        Math.atan2(Math.sin(headTarget), Math.cos(headTarget)),
+        -maxHeadTurn,
+        maxHeadTurn
+      )
+
+      // Smoothly turn the head
+      head.rotation.y += (
+        limitedHeadTarget - head.rotation.y
+      ) * 0.08
+
+      renderer.render(scene, camera)
+    }
+
+    animate()
+  </script>
+</body>
+</html>

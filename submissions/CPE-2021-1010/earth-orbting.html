@@ -1,153 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Moon Orbiting a Planet</title>
-<style>
-  html, body { margin: 0; height: 100%; background: #0e1116; display: flex; align-items: center; justify-content: center; }
-  canvas { max-width: 100%; height: auto; border: 1px solid #2a3140; }
-</style>
+    <meta charset="UTF-8">
+    <title>Earth Orbiting - Stylized</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #050505; }
+        canvas { border: 1px solid #222; box-shadow: 0 10px 40px rgba(0,0,0,0.9); border-radius: 8px; }
+    </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<script>
-/* ===================== EDIT ONLY THIS OBJECT =====================
-   canvasWidth / canvasHeight : canvas size in pixels
-   backgroundColor : space color
-   planetColor     : planet base color
-   planetShade     : dark edge color for the planet's 3D shading
-   moonColor       : moon color
-   orbitColor      : faint orbit ring color
-   trailColor      : color of the moon's trail
-   starColor       : color of background stars
-   ORBIT_SPEED     : radians per frame. Positive = clockwise on screen,
-                     negative = counter-clockwise.
-   ORBIT_RADIUS    : distance from planet centre to moon centre (pixels)
-   planetRadius    : planet radius (pixels)
-   moonRadius      : moon radius (pixels)
-   centerX/centerY : planet position in pixels, or "center"
-   startAngle      : moon's starting angle in radians
-   trailLength     : number of past moon positions in the trail (0 = off)
-   starCount       : number of background stars
-   starMaxSize     : biggest star radius
-   orbitLineWidth  : orbit ring thickness
-   orbitAlpha      : orbit ring opacity (0..1)
-   trailAlpha      : trail opacity at its newest end (0..1)
-   shadeOffset     : light-source offset for shading, fraction of planetRadius
-   shadeInnerRatio : size of the bright core gradient (fraction of planetRadius)
-================================================================== */
-const CONFIG = {
-  canvasWidth: 800,
-  canvasHeight: 600,
-  backgroundColor: "#05070d",
-  planetColor: "#3d8bff",
-  planetShade: "#0a1f4d",
-  moonColor: "#d8d8dc",
-  orbitColor: "#5c6b8a",
-  trailColor: "#d8d8dc",
-  starColor: "#ffffff",
-  ORBIT_SPEED: 0.02,
-  ORBIT_RADIUS: 200,
-  planetRadius: 60,
-  moonRadius: 16,
-  centerX: "center",
-  centerY: "center",
-  startAngle: 0,
-  trailLength: 40,
-  starCount: 90,
-  starMaxSize: 1.6,
-  orbitLineWidth: 1,
-  orbitAlpha: 0.4,
-  trailAlpha: 0.5,
-  shadeOffset: 0.35,
-  shadeInnerRatio: 0.1
-};
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        /*
+         * CONFIG: Controls all tunable parameters for the animation.
+         * - ORBIT_SPEED: Radians per frame (sign determines clockwise/counter-clockwise).
+         * - ORBIT_RADIUS: Distance from the center of the planet to the center of the moon.
+         * - planetRadius, moonRadius: Size of the celestial bodies.
+         * - planetColorBase, moonColor, backgroundColor: CSS color strings.
+         * - planetX / planetY: Central point of orbit. Use a number, or "center".
+         */
+        const CONFIG = {
+            ORBIT_SPEED: 0.015,
+            ORBIT_RADIUS: 200,
+            planetRadius: 75,
+            moonRadius: 22,
+            planetColorBase: "#00a8ff",
+            planetColorGlow: "#0097e6",
+            moonColor: "#f5f6fa",
+            backgroundColor: "#030305",
+            planetX: "center",
+            planetY: "center",
+            starCount: 150
+        };
 
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-canvas.width = CONFIG.canvasWidth;
-canvas.height = CONFIG.canvasHeight;
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
 
-const TWO_PI = Math.PI * 2;
-const centerX = CONFIG.centerX === "center" ? canvas.width / 2 : CONFIG.centerX;
-const centerY = CONFIG.centerY === "center" ? canvas.height / 2 : CONFIG.centerY;
+        const centerX = CONFIG.planetX === "center" ? canvas.width / 2 : CONFIG.planetX;
+        const centerY = CONFIG.planetY === "center" ? canvas.height / 2 : CONFIG.planetY;
+        
+        let angle = 0;
+        const FULL_CIRCLE = Math.PI * 2;
 
-let angle = CONFIG.startAngle;
-let moon = { x: 0, y: 0 };
-const trail = [];
+        // Generate static starfield
+        const stars = [];
+        for (let i = 0; i < CONFIG.starCount; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.5 + 0.5,
+                alpha: Math.random() * 0.8 + 0.2
+            });
+        }
 
-// Stars are generated once so they stay still.
-const stars = Array.from({ length: CONFIG.starCount }, () => ({
-  x: Math.random() * canvas.width,
-  y: Math.random() * canvas.height,
-  r: Math.random() * CONFIG.starMaxSize
-}));
+        function update() {
+            angle += CONFIG.ORBIT_SPEED;
+            if (angle >= FULL_CIRCLE) angle -= FULL_CIRCLE;
+            else if (angle <= -FULL_CIRCLE) angle += FULL_CIRCLE;
+        }
 
-function update() {
-  angle += CONFIG.ORBIT_SPEED;
-  // Wrap after a full turn (works for either direction).
-  if (angle >= TWO_PI) angle -= TWO_PI;
-  if (angle < 0) angle += TWO_PI;
+        function draw() {
+            // Space background
+            ctx.fillStyle = CONFIG.backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Parametric circle
-  moon.x = centerX + CONFIG.ORBIT_RADIUS * Math.cos(angle);
-  moon.y = centerY + CONFIG.ORBIT_RADIUS * Math.sin(angle);
+            // Draw Stars
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, FULL_CIRCLE);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+                ctx.closePath();
+            });
 
-  trail.push({ x: moon.x, y: moon.y });
-  if (trail.length > CONFIG.trailLength) trail.shift();
-}
+            // Draw Orbit Ring (subtle)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, CONFIG.ORBIT_RADIUS, 0, FULL_CIRCLE);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.closePath();
 
-function dot(x, y, r, color, alpha) {
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, TWO_PI);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-}
+            // Planet Glow
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, CONFIG.planetRadius + 20, 0, FULL_CIRCLE);
+            let glowGrad = ctx.createRadialGradient(centerX, centerY, CONFIG.planetRadius, centerX, centerY, CONFIG.planetRadius + 20);
+            glowGrad.addColorStop(0, "rgba(0, 168, 255, 0.4)");
+            glowGrad.addColorStop(1, "rgba(0, 168, 255, 0)");
+            ctx.fillStyle = glowGrad;
+            ctx.fill();
+            ctx.closePath();
 
-function draw() {
-  ctx.fillStyle = CONFIG.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Planet Body (Gradient for 3D effect)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, CONFIG.planetRadius, 0, FULL_CIRCLE);
+            let planetGrad = ctx.createRadialGradient(
+                centerX - CONFIG.planetRadius*0.3, centerY - CONFIG.planetRadius*0.3, 0, 
+                centerX, centerY, CONFIG.planetRadius
+            );
+            planetGrad.addColorStop(0, "#48dbfb"); // Light reflection
+            planetGrad.addColorStop(0.5, CONFIG.planetColorBase);
+            planetGrad.addColorStop(1, "#023e66"); // Shadow side
+            ctx.fillStyle = planetGrad;
+            ctx.fill();
+            ctx.closePath();
 
-  stars.forEach(s => dot(s.x, s.y, s.r, CONFIG.starColor, 1));
+            // Calculate moon position
+            const moonX = centerX + CONFIG.ORBIT_RADIUS * Math.cos(angle);
+            const moonY = centerY + CONFIG.ORBIT_RADIUS * Math.sin(angle);
 
-  // Orbit ring
-  ctx.globalAlpha = CONFIG.orbitAlpha;
-  ctx.strokeStyle = CONFIG.orbitColor;
-  ctx.lineWidth = CONFIG.orbitLineWidth;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, CONFIG.ORBIT_RADIUS, 0, TWO_PI);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+            // Moon Body (Gradient for 3D effect pointing toward planet)
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, CONFIG.moonRadius, 0, FULL_CIRCLE);
+            
+            // Make light source come from the central planet
+            let moonGrad = ctx.createLinearGradient(centerX, centerY, moonX + (moonX-centerX), moonY + (moonY-centerY));
+            moonGrad.addColorStop(0, CONFIG.moonColor);
+            moonGrad.addColorStop(1, "#444"); // Shadow on the far side
+            
+            ctx.fillStyle = moonGrad;
+            ctx.fill();
+            ctx.closePath();
+        }
 
-  // Moon trail
-  trail.forEach((p, i) => {
-    const t = (i + 1) / trail.length;
-    dot(p.x, p.y, CONFIG.moonRadius * t, CONFIG.trailColor, CONFIG.trailAlpha * t);
-  });
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
 
-  // Planet with radial shading
-  const R = CONFIG.planetRadius, o = R * CONFIG.shadeOffset;
-  const g = ctx.createRadialGradient(centerX - o, centerY - o, R * CONFIG.shadeInnerRatio, centerX, centerY, R);
-  g.addColorStop(0, CONFIG.planetColor);
-  g.addColorStop(1, CONFIG.planetShade);
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, R, 0, TWO_PI);
-  ctx.fill();
-
-  // Moon
-  dot(moon.x, moon.y, CONFIG.moonRadius, CONFIG.moonColor, 1);
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
-</script>
+        loop();
+    </script>
 </body>
 </html>

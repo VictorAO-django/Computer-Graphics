@@ -1,0 +1,183 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Car Turntable</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one fixed camera, the car centered in the frame and turning in place */
+:root {
+  --bg: #eef1f6;
+  --stage1: #ffffff;
+  --stage2: #cdd6e4;
+  --line: #c3ccda;
+  --hue: 222;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #12161d; --stage1: #333d4e; --stage2: #141920; --line: #2f3948; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #12161d; --stage1: #333d4e; --stage2: #141920; --line: #2f3948; color-scheme: dark; }
+
+body {
+  background: var(--bg);
+  min-height: 100dvh;
+  padding-block: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; justify-content: center;
+}
+.stage {
+  --k: 1;
+  position: relative; width: 100%; max-width: 760px; aspect-ratio: 760 / 500;
+  border-radius: 24px; overflow: hidden; border: 1px solid var(--line);
+  background: radial-gradient(ellipse at 50% 50%, var(--stage1), var(--stage2) 78%);
+  perspective: calc(1300px * var(--k));
+}
+/* origin sits on the turntable; the shift lifts the car's middle to the exact center of the frame */
+.stage .scene {
+  position: absolute; left: 50%; top: calc(50% + 59px * var(--k)); width: 0; height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(-17deg) scale(var(--k));
+}
+.p3 { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.f { position: absolute; backface-visibility: visible; }
+.spin { animation: spin 16s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 48s; } }
+@keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+</style>
+
+<div class="stage" id="stage" role="img" aria-label="A blue coupe rotating on a turntable">
+  <div class="scene p3" id="scene">
+    <div class="p3" id="rim"></div>
+    <div class="p3 spin" id="spin"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById("stage");
+  var spin = document.getElementById("spin");
+  var rim = document.getElementById("rim");
+
+  function g(parent, tf) {
+    var e = document.createElement("div");
+    e.className = "p3";
+    if (tf) e.style.transform = tf;
+    parent.appendChild(e);
+    return e;
+  }
+  function f(parent, w, h, tf, bg, more) {
+    var e = document.createElement("div");
+    e.className = "f";
+    e.style.width = w + "px"; e.style.height = h + "px";
+    e.style.left = (-w / 2) + "px"; e.style.top = (-h / 2) + "px";
+    e.style.transform = tf; e.style.background = bg;
+    if (more) for (var k in more) e.style[k] = more[k];
+    parent.appendChild(e);
+    return e;
+  }
+  function solid(h, s, l) {
+    return function (dl) { return "hsl(" + h + " " + s + "% " + Math.max(3, Math.min(98, l + dl)) + "%)"; };
+  }
+  var paint = function (dl) { return "hsl(var(--hue) 86% " + (54 + dl) + "%)"; };
+  var OVER = "linear-gradient(rgba(255,255,255,.14),rgba(0,0,0,.10)),";
+
+  // Axis-aligned box. x = toward the nose, y = down, z = across the car.
+  function box(p, w, h, d, x, y, z, c) {
+    var b = g(p, "translate3d(" + x + "px," + y + "px," + z + "px)");
+    f(b, w, h, "translateZ(" + d / 2 + "px)", OVER + c(-2));
+    f(b, w, h, "rotateY(180deg) translateZ(" + d / 2 + "px)", OVER + c(-10));
+    f(b, d, h, "rotateY(90deg) translateZ(" + w / 2 + "px)", OVER + c(-6));
+    f(b, d, h, "rotateY(-90deg) translateZ(" + w / 2 + "px)", OVER + c(-14));
+    f(b, w, d, "rotateX(90deg) translateZ(" + h / 2 + "px)", OVER + c(10));
+    f(b, w, d, "rotateX(-90deg) translateZ(" + h / 2 + "px)", c(-30));
+    return b;
+  }
+
+  var car = g(spin);
+
+  // ---- turntable ----
+  for (var i = 0; i < 8; i++) {
+    f(rim, 480, 480, "translateY(" + (4 + i * 2.2) + "px) rotateX(90deg)", i === 7 ? "#7f8999" : "#a9b2c1", { borderRadius: "50%" });
+  }
+  f(spin, 480, 480, "translateY(2px) rotateX(90deg)",
+    "radial-gradient(circle, transparent 0 60%, rgba(0,0,0,.10) 60% 61%, transparent 61% 88%, rgba(0,0,0,.12) 88% 89%, transparent 89%)," +
+    "repeating-conic-gradient(#dde3ec 0 7.5deg, #eef1f7 7.5deg 15deg)",
+    { borderRadius: "50%" });
+  f(spin, 370, 190, "translateY(1px) rotateX(90deg)",
+    "radial-gradient(ellipse at center, rgba(20,30,50,.55) 0%, rgba(20,30,50,.30) 45%, rgba(20,30,50,0) 72%)");
+
+  // ---- body ----
+  box(car, 320, 44, 150, 0, -52, 0, paint);
+  box(car, 90, 6, 130, -10, -118, 0, paint);                 // roof
+
+  // cabin glass: side panels, windshield, rear window
+  var glassSide = "linear-gradient(160deg,#d4edff 0%,#5a93d4 38%,#1d3a66 100%)";
+  var glassFront = "linear-gradient(180deg,#e1f2ff 0%,#6aa3e0 45%,#2a4d82 100%)";
+  var clip = { clipPath: "polygon(0 100%, 21% 0, 68.4% 0, 100% 100%)" };
+  f(car, 190, 44, "translate3d(0px,-96px,64.5px)", glassSide, clip);
+  f(car, 190, 44, "translate3d(0px,-96px,-64.5px)", glassSide, clip);
+  f(car, 130, 74.4, "translate3d(65px,-96px,0px) rotateZ(-53.7deg) rotateY(90deg)", glassFront);
+  f(car, 130, 59.5, "translate3d(-75px,-96px,0px) rotateZ(42.2deg) rotateY(90deg)", glassFront);
+
+  // stripes
+  var white = solid(0, 0, 96);
+  box(car, 65, 2, 26, 127.5, -75.2, 0, white);
+  box(car, 90, 2, 26, -10, -122.2, 0, white);
+  box(car, 65, 2, 26, -127.5, -75.2, 0, white);
+
+  // bumpers, lights, grille, plate
+  var chrome = solid(214, 12, 70), dark = solid(220, 14, 14);
+  box(car, 10, 16, 150, 165, -40, 0, chrome);
+  box(car, 10, 16, 150, -165, -40, 0, chrome);
+  box(car, 4, 14, 30, 161, -61, 50, solid(50, 100, 82));
+  box(car, 4, 14, 30, 161, -61, -50, solid(50, 100, 82));
+  box(car, 3, 12, 56, 161, -58, 0, dark);
+  box(car, 4, 14, 34, -161, -62, 48, solid(356, 88, 50));
+  box(car, 4, 14, 34, -161, -62, -48, solid(356, 88, 50));
+  box(car, 3, 11, 40, -162, -50, 0, solid(48, 30, 92));
+
+  // spoiler
+  var navy = solid(224, 55, 18);
+  box(car, 26, 4, 136, -146, -96, 0, navy);
+  box(car, 6, 22, 6, -146, -85, 48, navy);
+  box(car, 6, 22, 6, -146, -85, -48, navy);
+
+  // mirrors
+  box(car, 8, 7, 10, 80, -82, 71, paint);
+  box(car, 8, 7, 10, 80, -82, -71, paint);
+
+  // wheel arches, door lines, handles
+  [1, -1].forEach(function (s) {
+    [100, -100].forEach(function (ax) {
+      f(car, 72, 72, "translate3d(" + ax + "px,-36px," + s * 76.2 + "px)", "hsl(220 20% 9%)", { borderRadius: "50%" });
+    });
+    f(car, 1.6, 40, "translate3d(-40px,-52px," + s * 76.2 + "px)", "hsl(220 25% 10%)");
+    f(car, 1.6, 40, "translate3d(48px,-52px," + s * 76.2 + "px)", "hsl(220 25% 10%)");
+    f(car, 12, 3.2, "translate3d(-30px,-62px," + s * 76.4 + "px)", "#dfe6f2");
+    f(car, 12, 3.2, "translate3d(58px,-62px," + s * 76.4 + "px)", "#dfe6f2");
+  });
+
+  // ---- wheels: 14-sided prism + caps + spoked hub ----
+  function wheel(x, z) {
+    var R = 33, T = 26, N = 14;
+    var w = g(car, "translate3d(" + x + "px," + (-R) + "px," + z + "px)");
+    var chord = 2 * R * Math.tan(Math.PI / N) + 1;
+    for (var i = 0; i < N; i++) {
+      f(w, chord, T, "rotateZ(" + (i * 360 / N) + "deg) translateY(" + (-R) + "px) rotateX(90deg)", i % 2 ? "hsl(220 10% 17%)" : "hsl(220 10% 11%)");
+    }
+    [1, -1].forEach(function (s) {
+      f(w, 2 * R, 2 * R, "translateZ(" + s * T / 2 + "px)", "hsl(220 10% 12%)", { borderRadius: "50%" });
+      f(w, 2 * R * 0.72, 2 * R * 0.72, "translateZ(" + s * (T / 2 + 1.5) + "px)",
+        "radial-gradient(circle, #ffd23f 0 16%, transparent 17%), repeating-conic-gradient(#eef2f8 0 15deg, #8b95a8 15deg 30deg)",
+        { borderRadius: "50%", boxShadow: "0 0 0 3px #c9d1df inset" });
+    });
+  }
+  wheel(100, 78); wheel(100, -78); wheel(-100, 78); wheel(-100, -78);
+
+  // scale the 760px-wide design to whatever width the stage has
+  function fit() { stage.style.setProperty("--k", (stage.clientWidth / 760).toFixed(4)); }
+  fit();
+  window.addEventListener("resize", fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+})();
+</script>
+
+</body></html>

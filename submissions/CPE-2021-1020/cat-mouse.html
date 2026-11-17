@@ -1,0 +1,270 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cat and Mouse</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one full-width cartoon stage, a single play/pause control beneath it */
+:root {
+  --bg: #fff6e5;
+  --fg: #3a2a20;
+  --btn: #ff8a3d;
+  --btn-fg: #2b1708;
+  --muted: #8a6f5c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #241a16; --fg: #ffe9cf; --btn: #ff9d57; --btn-fg: #2b1708; --muted: #c9ab92; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #241a16; --fg: #ffe9cf; --btn: #ff9d57; --btn-fg: #2b1708; --muted: #c9ab92; color-scheme: dark; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  padding-block: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+h1 { margin: 0; font-size: 1.6rem; letter-spacing: .5px; text-wrap: balance; text-align: center; }
+.stage { width: 100%; max-width: 860px; border-radius: 28px; overflow: hidden; border: 4px solid #3a2a20; box-shadow: 0 6px 0 #3a2a20; line-height: 0; }
+svg { width: 100%; height: auto; display: block; }
+button {
+  font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer;
+  background: var(--btn); color: var(--btn-fg);
+  border: 3px solid #3a2a20; border-radius: 999px; padding: 8px 26px; box-shadow: 0 4px 0 #3a2a20;
+}
+button:active { transform: translateY(3px); box-shadow: 0 1px 0 #3a2a20; }
+button:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+p { margin: 0; color: var(--muted); font-size: .9rem; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+
+<h1>Catch me if you can!</h1>
+<div class="stage">
+<svg id="scene" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A cartoon cat turns its head to watch a mouse run in circles around it">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fd8ff"/><stop offset="1" stop-color="#d9f3ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <!-- sun -->
+  <g id="sun" transform="translate(690 80)">
+    <circle r="46" fill="#ffd93d" stroke="#3a2a20" stroke-width="4"/>
+    <circle cx="-14" cy="-6" r="5" fill="#3a2a20"/><circle cx="14" cy="-6" r="5" fill="#3a2a20"/>
+    <path d="M-14 12 Q0 26 14 12" fill="none" stroke="#3a2a20" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <!-- clouds -->
+  <g id="cloudA" fill="#fff" stroke="#3a2a20" stroke-width="4"><path d="M0 40 q0-30 32-26 q14-26 44-8 q34-6 34 28 q0 18-20 18 H20 q-20 0-20-12z"/></g>
+  <g id="cloudB" fill="#fff" stroke="#3a2a20" stroke-width="4"><path d="M0 30 q0-22 26-20 q12-20 36-6 q28-4 28 22 q0 14-16 14 H16 q-16 0-16-10z"/></g>
+  <!-- hills + floor -->
+  <path d="M0 300 Q140 220 300 290 T620 280 T800 290 V500 H0z" fill="#8ee08e" stroke="#3a2a20" stroke-width="4"/>
+  <rect y="355" width="800" height="145" fill="#ffc46b" stroke="#3a2a20" stroke-width="4"/>
+  <g fill="#e89a3c" opacity=".55">
+    <ellipse cx="90" cy="450" rx="40" ry="6"/><ellipse cx="700" cy="470" rx="50" ry="7"/><ellipse cx="560" cy="440" rx="30" ry="5"/>
+  </g>
+
+  <g id="layerBack"></g>
+
+  <!-- CAT -->
+  <g id="cat">
+    <ellipse cx="400" cy="420" rx="125" ry="20" fill="#3a2a20" opacity=".25"/>
+    <!-- tail -->
+    <g id="tail" transform="translate(470 395)">
+      <path d="M0 0 C70 10 105 -30 82 -100" fill="none" stroke="#3a2a20" stroke-width="30" stroke-linecap="round"/>
+      <path d="M0 0 C70 10 105 -30 82 -100" fill="none" stroke="#ff9a3c" stroke-width="22" stroke-linecap="round"/>
+      <path d="M92 -62 L74 -70 M98 -84 L78 -88" stroke="#3a2a20" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <!-- body -->
+    <ellipse cx="400" cy="340" rx="88" ry="84" fill="#ff9a3c" stroke="#3a2a20" stroke-width="5"/>
+    <ellipse cx="400" cy="362" rx="52" ry="58" fill="#ffe3b8"/>
+    <path d="M318 330 l18 6 M322 358 l20 2 M482 330 l-18 6 M478 358 l-20 2" stroke="#3a2a20" stroke-width="5" stroke-linecap="round"/>
+    <!-- front paws -->
+    <ellipse cx="362" cy="413" rx="30" ry="17" fill="#ffe3b8" stroke="#3a2a20" stroke-width="5"/>
+    <ellipse cx="438" cy="413" rx="30" ry="17" fill="#ffe3b8" stroke="#3a2a20" stroke-width="5"/>
+    <path d="M354 408 v10 M366 407 v11 M430 407 v11 M442 408 v10" stroke="#3a2a20" stroke-width="3" stroke-linecap="round"/>
+    <!-- head -->
+    <g id="head" transform="translate(400 235)">
+      <path d="M-76 -28 L-68 -98 L-22 -58 Z" fill="#ff9a3c" stroke="#3a2a20" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M-64 -44 L-62 -78 L-40 -58 Z" fill="#ff8fa3"/>
+      <path d="M76 -28 L68 -98 L22 -58 Z" fill="#ff9a3c" stroke="#3a2a20" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M64 -44 L62 -78 L40 -58 Z" fill="#ff8fa3"/>
+      <ellipse cx="0" cy="0" rx="86" ry="70" fill="#ff9a3c" stroke="#3a2a20" stroke-width="5"/>
+      <path d="M-14 -66 v22 M0 -69 v26 M14 -66 v22" stroke="#c4601a" stroke-width="6" stroke-linecap="round"/>
+      <ellipse cx="0" cy="26" rx="38" ry="28" fill="#ffe3b8"/>
+      <!-- eyes -->
+      <g id="eyeL" transform="translate(-34 -6)">
+        <ellipse rx="22" ry="26" fill="#fff" stroke="#3a2a20" stroke-width="4"/>
+        <g class="pupil"><circle r="11" fill="#3a2a20"/><circle cx="-3" cy="-4" r="4" fill="#fff"/></g>
+        <path class="lid" d="M-24 -28 H24 V-27 H-24z" fill="#ff9a3c" stroke="#3a2a20" stroke-width="4"/>
+      </g>
+      <g id="eyeR" transform="translate(34 -6)">
+        <ellipse rx="22" ry="26" fill="#fff" stroke="#3a2a20" stroke-width="4"/>
+        <g class="pupil"><circle r="11" fill="#3a2a20"/><circle cx="-3" cy="-4" r="4" fill="#fff"/></g>
+        <path class="lid" d="M-24 -28 H24 V-27 H-24z" fill="#ff9a3c" stroke="#3a2a20" stroke-width="4"/>
+      </g>
+      <!-- brows -->
+      <path id="browL" d="M-58 -38 Q-38 -50 -16 -40" fill="none" stroke="#3a2a20" stroke-width="5" stroke-linecap="round"/>
+      <path id="browR" d="M58 -38 Q38 -50 16 -40" fill="none" stroke="#3a2a20" stroke-width="5" stroke-linecap="round"/>
+      <!-- nose + mouth -->
+      <path d="M-9 18 H9 L0 30 Z" fill="#ff6f91" stroke="#3a2a20" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M0 30 Q-12 46 -26 38 M0 30 Q12 46 26 38" fill="none" stroke="#3a2a20" stroke-width="4" stroke-linecap="round"/>
+      <g stroke="#3a2a20" stroke-width="3.5" stroke-linecap="round">
+        <path d="M-52 22 L-98 12 M-52 30 L-100 32 M-50 38 L-92 52"/>
+        <path d="M52 22 L98 12 M52 30 L100 32 M50 38 L92 52"/>
+      </g>
+      <circle cx="-62" cy="22" r="8" fill="#ff6f91" opacity=".45"/><circle cx="62" cy="22" r="8" fill="#ff6f91" opacity=".45"/>
+    </g>
+  </g>
+
+  <g id="layerFront"></g>
+
+  <!-- MOUSE (moved between layers so it passes behind and in front of the cat) -->
+  <g id="mouse">
+    <ellipse cx="0" cy="2" rx="38" ry="7" fill="#3a2a20" opacity=".25"/>
+    <g id="mouseBody">
+      <path d="M-26 -14 Q-52 -8 -54 -30 T-78 -26" fill="none" stroke="#3a2a20" stroke-width="8" stroke-linecap="round"/>
+      <path d="M-26 -14 Q-52 -8 -54 -30 T-78 -26" fill="none" stroke="#ff9db5" stroke-width="4" stroke-linecap="round"/>
+      <g id="legBack"><ellipse cx="-12" cy="-4" rx="9" ry="6" fill="#b9bfd0" stroke="#3a2a20" stroke-width="3"/></g>
+      <g id="legBack2"><ellipse cx="2" cy="-4" rx="9" ry="6" fill="#b9bfd0" stroke="#3a2a20" stroke-width="3"/></g>
+      <ellipse cx="0" cy="-16" rx="30" ry="18" fill="#cdd3e2" stroke="#3a2a20" stroke-width="4"/>
+      <ellipse cx="2" cy="-10" rx="18" ry="9" fill="#f3f5fb"/>
+      <ellipse cx="26" cy="-20" rx="16" ry="14" fill="#cdd3e2" stroke="#3a2a20" stroke-width="4"/>
+      <circle cx="18" cy="-36" r="11" fill="#ff9db5" stroke="#3a2a20" stroke-width="4"/>
+      <circle cx="40" cy="-19" r="4.5" fill="#ff6f91" stroke="#3a2a20" stroke-width="2.5"/>
+      <circle cx="31" cy="-25" r="3.6" fill="#3a2a20"/><circle cx="32" cy="-26" r="1.2" fill="#fff"/>
+      <path d="M38 -15 l14 -3 M38 -12 l14 3" stroke="#3a2a20" stroke-width="2" stroke-linecap="round"/>
+      <g id="legFront"><ellipse cx="14" cy="-4" rx="9" ry="6" fill="#cdd3e2" stroke="#3a2a20" stroke-width="3"/></g>
+      <g id="legFront2"><ellipse cx="-4" cy="-4" rx="9" ry="6" fill="#cdd3e2" stroke="#3a2a20" stroke-width="3"/></g>
+    </g>
+    <g id="speed" stroke="#3a2a20" stroke-width="3" stroke-linecap="round" opacity=".5">
+      <path d="M-92 -34 h-22 M-96 -20 h-30 M-92 -6 h-20"/>
+    </g>
+  </g>
+</svg>
+</div>
+<button id="toggle" type="button">Pause</button>
+<p>The cat's eyes and head follow the mouse the whole way round.</p>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var mouse = $("mouse"), mouseBody = $("mouseBody"), speed = $("speed");
+  var back = $("layerBack"), front = $("layerFront");
+  var head = $("head"), tail = $("tail");
+  var pupils = document.querySelectorAll(".pupil");
+  var lids = document.querySelectorAll(".lid");
+  var browL = $("browL"), browR = $("browR");
+  var legs = ["legFront", "legFront2", "legBack", "legBack2"].map($);
+  var cloudA = $("cloudA"), cloudB = $("cloudB"), sun = $("sun");
+
+  var CX = 400, CY = 408, RX = 300, RY = 62;
+  var theta = 0.6, dir = 1, lap = 0;
+  var flip = 1, headAng = 0, headX = 0, px = 0, py = 0, run = 0;
+  var blinkT = 2.5, blink = 0, last = null, clock = 0, playing = true;
+  var btn = $("toggle");
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function frame(now) {
+    if (last === null) last = now;
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (playing) {
+      clock += dt;
+      step(dt);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function step(dt) {
+    // speed varies so the mouse scurries, then sprints
+    var sp = 1.5 + 0.7 * Math.sin(clock * 1.3);
+    var prev = theta;
+    theta += dir * sp * dt;
+    if (Math.abs(theta - prev) > 0 && Math.floor(theta / (Math.PI * 2)) !== Math.floor(prev / (Math.PI * 2))) {
+      lap++;
+      if (lap % 2 === 0) dir = -dir;           // sneaky U-turn every other lap
+    }
+    var s = Math.sin(theta), c = Math.cos(theta);
+    var x = CX + RX * c, y = CY + RY * s;
+    var depth = (s + 1) / 2;                    // 0 = behind cat, 1 = in front
+    var scale = 0.72 + 0.5 * depth;
+    run += dt * (14 + sp * 6);
+
+    // facing direction follows travel direction
+    var vx = -s * dir * RX;
+    var targetFlip = vx >= 0 ? 1 : -1;
+    flip += (targetFlip - flip) * Math.min(1, dt * 14);
+
+    // bounce while running
+    var hop = -Math.abs(Math.sin(run)) * 7;
+    mouse.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ") scale(" + (scale * flip).toFixed(3) + " " + scale.toFixed(3) + ")");
+    mouseBody.setAttribute("transform", "translate(0 " + hop.toFixed(1) + ")");
+    speed.style.opacity = (0.25 + 0.4 * Math.min(1, sp / 2)).toFixed(2);
+
+    // legs scurry
+    legs.forEach(function (g, i) {
+      var ph = run * 1.2 + (i % 2) * Math.PI;
+      var lx = Math.sin(ph) * 9;
+      var ly = -Math.max(0, Math.cos(ph)) * 6;
+      g.setAttribute("transform", "translate(" + lx.toFixed(1) + " " + ly.toFixed(1) + ")");
+    });
+
+    // draw order: behind the cat or in front of it
+    var want = s < 0 ? back : front;
+    if (mouse.parentNode !== want) want.appendChild(mouse);
+
+    // cat watches the mouse
+    var nx = clamp((x - 400) / RX, -1, 1);
+    var behind = s < 0;
+    var tAng = nx * 15;
+    var tX = nx * 7;
+    headAng += (tAng - headAng) * Math.min(1, dt * 7);
+    headX += (tX - headX) * Math.min(1, dt * 7);
+    var bob = Math.sin(clock * 3) * 1.5 + (behind ? -4 : 0);
+    head.setAttribute("transform", "translate(" + (400 + headX).toFixed(1) + " " + (235 + bob).toFixed(1) + ") rotate(" + headAng.toFixed(1) + ")");
+
+    var tpx = nx * 11;
+    var tpy = behind ? -9 : 5;
+    px += (tpx - px) * Math.min(1, dt * 12);
+    py += (tpy - py) * Math.min(1, dt * 12);
+    for (var i = 0; i < pupils.length; i++) {
+      pupils[i].setAttribute("transform", "translate(" + px.toFixed(1) + " " + py.toFixed(1) + ")");
+    }
+
+    // blink
+    blinkT -= dt;
+    if (blinkT < 0) { blink = 0.16; blinkT = 2 + Math.random() * 2.5; }
+    var closed = 0;
+    if (blink > 0) { blink -= dt; closed = Math.sin(clamp(blink / 0.16, 0, 1) * Math.PI); }
+    var lidH = closed * 52;
+    for (var j = 0; j < lids.length; j++) {
+      lids[j].setAttribute("d", "M-24 -28 H24 V" + (-28 + lidH).toFixed(1) + " H-24z");
+    }
+
+    // brows: curious when mouse is near the front, raised when behind
+    var raise = behind ? -5 : Math.max(0, depth - 0.6) * -4;
+    browL.setAttribute("transform", "translate(0 " + raise.toFixed(1) + ")");
+    browR.setAttribute("transform", "translate(0 " + raise.toFixed(1) + ")");
+
+    // tail swish gets busier the closer the mouse comes
+    var swish = Math.sin(clock * (2.2 + depth * 3.5)) * (10 + depth * 12);
+    tail.setAttribute("transform", "translate(470 395) rotate(" + swish.toFixed(1) + ")");
+
+    // drifting sky
+    cloudA.setAttribute("transform", "translate(" + (((clock * 9) % 960) - 130).toFixed(1) + " 50)");
+    cloudB.setAttribute("transform", "translate(" + (((clock * 5 + 500) % 960) - 130).toFixed(1) + " 120)");
+    sun.setAttribute("transform", "translate(690 80) rotate(" + (clock * 12).toFixed(1) + ")");
+  }
+
+  btn.addEventListener("click", function () {
+    playing = !playing;
+    btn.textContent = playing ? "Pause" : "Play";
+  });
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { playing = false; btn.textContent = "Play"; }
+  step(0.016);                // first frame is a complete picture even when paused
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
