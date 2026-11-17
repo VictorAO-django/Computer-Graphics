@@ -2,134 +2,162 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Moving Car - Computer Graphics Assignment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moving Car</title>
 <style>
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0b0712;
-  }
-  canvas {
-    background: #f2a673;
-    border: 2px solid #444;
-    border-radius: 6px;
-  }
+  html, body { margin: 0; height: 100%; background: #0e1116; display: flex; align-items: center; justify-content: center; }
+  canvas { max-width: 100%; height: auto; border: 1px solid #2a3140; }
 </style>
 </head>
 <body>
-
-<canvas id="scene" width="800" height="600"></canvas>
-
+<canvas id="c"></canvas>
 <script>
-/* =====================================================================
- * MOVING CAR - HTML/Canvas version of moving_car.c
- * ---------------------------------------------------------------------
- * Technique: single-axis translation + respawn ("wrap-around"), exactly
- * as in the C program. Everything that depends on direction -- the sign
- * of the speed, where the car spawns, when it counts as "gone", and
- * which end gets the headlight -- is worked out from the single
- * DIRECTION value below.
- * ===================================================================== */
-
-/* ---------------------------------------------------------------------
- *  THE SINGLE CONTROL POINT -- the only values to edit.
- *      DIRECTION   1  = the car drives from LEFT to RIGHT
- *                 -1  = the car drives from RIGHT to LEFT
- *      SPEED       how fast, in pixels per frame -- always positive;
- *                  DIRECTION gives it its sign
- *      bodyColor / cabinColor / roadColor / bgColor   any CSS colour string
- * --------------------------------------------------------------------- */
+/* ===================== EDIT ONLY THIS OBJECT =====================
+   canvasWidth / canvasHeight : canvas size in pixels
+   DIRECTION        : 1 = left-to-right, -1 = right-to-left
+   SPEED            : pixels per frame, always positive (DIRECTION gives the sign)
+   bodyColor        : car body color
+   cabinColor       : cabin / roof color
+   windowColor      : window glass color
+   wheelColor       : tire color
+   hubColor         : wheel hub / spoke color
+   lightColor       : headlight color
+   roadColor        : road surface color
+   laneColor        : dashed center-line color
+   backgroundColor  : sky color
+   roadTop          : y position where the road starts
+   roadHeight       : road thickness in pixels
+   laneDashWidth/Height/Gap : dashed lane marking geometry
+   carWidth/carHeight       : body size (cabin and wheels scale from these)
+   cabinWidthRatio  : cabin width as a fraction of carWidth
+   cabinHeightRatio : cabin height as a fraction of carHeight
+   cabinOffsetRatio : how far the cabin sits back from the car's centre (fraction of carWidth)
+   wheelRadius      : wheel radius in pixels
+   wheelInsetRatio  : wheel centre distance from car end (fraction of carWidth)
+   spokeCount       : spokes per wheel
+   hubRatio         : hub size as a fraction of wheelRadius
+   spokeLineWidth   : spoke thickness
+   windowInset      : gap between cabin edge and window
+   lightSize        : headlight width/height
+   startX           : "offscreen" or a pixel x for the car's left edge
+================================================================== */
 const CONFIG = {
-  DIRECTION: -1,
-  SPEED: 3.0,
-  bodyColor:  "#e62626",   // red
-  cabinColor: "#f2d933",   // yellow
-  roadColor:  "#333333",   // dark gray
-  bgColor:    "#f2a673",   // sunset orange
+  canvasWidth: 800,
+  canvasHeight: 600,
+  DIRECTION: 1,
+  SPEED: 4,
+  bodyColor: "#d93a3a",
+  cabinColor: "#a82525",
+  windowColor: "#bfe3f5",
+  wheelColor: "#1b1b1f",
+  hubColor: "#c9ccd3",
+  lightColor: "#ffe9a3",
+  roadColor: "#3a3d45",
+  laneColor: "#e8e8e8",
+  backgroundColor: "#8ecae6",
+  roadTop: 380,
+  roadHeight: 140,
+  laneDashWidth: 50,
+  laneDashHeight: 6,
+  laneDashGap: 40,
+  carWidth: 180,
+  carHeight: 44,
+  cabinWidthRatio: 0.55,
+  cabinHeightRatio: 0.85,
+  cabinOffsetRatio: 0.04,
+  wheelRadius: 19,
+  wheelInsetRatio: 0.22,
+  spokeCount: 5,
+  hubRatio: 0.4,
+  spokeLineWidth: 2,
+  windowInset: 6,
+  lightSize: 10,
+  startX: "offscreen"
 };
 
-const canvas = document.getElementById("scene");
+const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
+canvas.width = CONFIG.canvasWidth;
+canvas.height = CONFIG.canvasHeight;
 
-const carW = 120, carH = 40;
-const carY = 150;   // measured from the bottom, flipped to canvas space when drawing
-const speed = CONFIG.DIRECTION * CONFIG.SPEED;
-
-function spawnX() {
-  // appears just outside the window, on the side it is coming FROM
-  return CONFIG.DIRECTION > 0 ? -carW : canvas.width;
-}
-
-function isOffScreen() {
-  if (CONFIG.DIRECTION > 0) return carX > canvas.width;   // heading right: left edge passed the right wall
-  return carX + carW < 0;                                  // heading left: right edge passed the left wall
-}
-
-let carX = spawnX();
-
-// canvas Y grows downward, the C version's Y grows upward from the bottom --
-// this just flips a world-Y into a canvas-Y, so the rest of the drawing code
-// can still think in the same "up is positive" terms as the C file.
-function toCanvasY(y) {
-  return canvas.height - y;
-}
-
-function drawCircle(cx, cy, r, color) {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawCar(x, y) {
-  const frontX = CONFIG.DIRECTION > 0 ? x + carW : x;
-
-  // ---- body ----
-  ctx.fillStyle = CONFIG.bodyColor;
-  ctx.fillRect(x, toCanvasY(y + carH), carW, carH);
-
-  // ---- cabin/roof: a trapezoid sitting on top of the body ----
-  ctx.fillStyle = CONFIG.cabinColor;
-  ctx.beginPath();
-  ctx.moveTo(x + carW * 0.22, toCanvasY(y + carH));
-  ctx.lineTo(x + carW * 0.70, toCanvasY(y + carH));
-  ctx.lineTo(x + carW * 0.60, toCanvasY(y + carH + 25));
-  ctx.lineTo(x + carW * 0.32, toCanvasY(y + carH + 25));
-  ctx.closePath();
-  ctx.fill();
-
-  // ---- headlight: a small warm-white box on the FRONT end ----
-  ctx.fillStyle = "#fffcd9";
-  const hx1 = frontX;
-  const hx2 = frontX - CONFIG.DIRECTION * 10;
-  const left = Math.min(hx1, hx2), width = Math.abs(hx2 - hx1);
-  ctx.fillRect(left, toCanvasY(y + carH * 0.85), width, carH * 0.4);
-
-  // ---- wheels ----
-  drawCircle(x + carW * 0.22, toCanvasY(y), 12, "#0d0d0d");
-  drawCircle(x + carW * 0.78, toCanvasY(y), 12, "#0d0d0d");
-  drawCircle(x + carW * 0.22, toCanvasY(y), 4, "#ffffff");
-  drawCircle(x + carW * 0.78, toCanvasY(y), 4, "#ffffff");
-}
-
-function drawRoad() {
-  ctx.fillStyle = CONFIG.roadColor;
-  ctx.fillRect(0, toCanvasY(carY - 12), canvas.width, carY - 12);
-}
+const car = {
+  x: 0,                                     // left edge of the car
+  y: CONFIG.roadTop + CONFIG.roadHeight / 2 - CONFIG.carHeight / 2 - CONFIG.wheelRadius / 2,
+  wheelAngle: 0
+};
+function spawnX() { return CONFIG.DIRECTION === 1 ? -CONFIG.carWidth : canvas.width; }
+car.x = CONFIG.startX === "offscreen" ? spawnX() : CONFIG.startX;
 
 function update() {
-  carX += speed;
-  if (isOffScreen()) carX = spawnX();
+  car.x += CONFIG.SPEED * CONFIG.DIRECTION;                       // translate on one axis
+  car.wheelAngle += (CONFIG.SPEED / CONFIG.wheelRadius) * CONFIG.DIRECTION;
+
+  // Wrap-around: once fully off-screen, respawn just beyond the opposite edge.
+  if (CONFIG.DIRECTION === 1 && car.x > canvas.width) car.x = -CONFIG.carWidth;
+  if (CONFIG.DIRECTION === -1 && car.x + CONFIG.carWidth < 0) car.x = canvas.width;
+}
+
+function drawWheel(cx, cy) {
+  ctx.fillStyle = CONFIG.wheelColor;
+  ctx.beginPath(); ctx.arc(cx, cy, CONFIG.wheelRadius, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = CONFIG.hubColor;
+  ctx.beginPath(); ctx.arc(cx, cy, CONFIG.wheelRadius * CONFIG.hubRatio, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = CONFIG.hubColor;
+  ctx.lineWidth = CONFIG.spokeLineWidth;
+  for (let i = 0; i < CONFIG.spokeCount; i++) {
+    const a = car.wheelAngle * CONFIG.DIRECTION + (i * Math.PI * 2) / CONFIG.spokeCount;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * CONFIG.wheelRadius * 0.9, cy + Math.sin(a) * CONFIG.wheelRadius * 0.9);
+    ctx.stroke();
+  }
+}
+
+function drawCar() {
+  const w = CONFIG.carWidth, h = CONFIG.carHeight;
+  ctx.save();
+  // Origin = centre of the car; mirror horizontally when driving right-to-left.
+  ctx.translate(car.x + w / 2, car.y);
+  ctx.scale(CONFIG.DIRECTION, 1);
+
+  // Body
+  ctx.fillStyle = CONFIG.bodyColor;
+  ctx.fillRect(-w / 2, 0, w, h);
+
+  // Cabin / roof
+  const cw = w * CONFIG.cabinWidthRatio, ch = h * CONFIG.cabinHeightRatio;
+  const cx = -cw / 2 - w * CONFIG.cabinOffsetRatio;
+  ctx.fillStyle = CONFIG.cabinColor;
+  ctx.fillRect(cx, -ch, cw, ch);
+
+  // Window
+  ctx.fillStyle = CONFIG.windowColor;
+  ctx.fillRect(cx + CONFIG.windowInset, -ch + CONFIG.windowInset, cw - CONFIG.windowInset * 2, ch - CONFIG.windowInset);
+
+  // Headlight (front = +x side)
+  ctx.fillStyle = CONFIG.lightColor;
+  ctx.fillRect(w / 2 - CONFIG.lightSize, h * 0.2, CONFIG.lightSize, CONFIG.lightSize);
+
+  // Wheels
+  drawWheel(-w / 2 + w * CONFIG.wheelInsetRatio, h);
+  drawWheel( w / 2 - w * CONFIG.wheelInsetRatio, h);
+  ctx.restore();
 }
 
 function draw() {
-  ctx.fillStyle = CONFIG.bgColor;
+  ctx.fillStyle = CONFIG.backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawRoad();
-  drawCar(carX, carY);
+
+  ctx.fillStyle = CONFIG.roadColor;
+  ctx.fillRect(0, CONFIG.roadTop, canvas.width, CONFIG.roadHeight);
+
+  ctx.fillStyle = CONFIG.laneColor;
+  const laneY = CONFIG.roadTop + CONFIG.roadHeight / 2 - CONFIG.laneDashHeight / 2;
+  for (let x = 0; x < canvas.width; x += CONFIG.laneDashWidth + CONFIG.laneDashGap) {
+    ctx.fillRect(x, laneY, CONFIG.laneDashWidth, CONFIG.laneDashHeight);
+  }
+
+  drawCar();
 }
 
 function loop() {
@@ -137,7 +165,6 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
-
 loop();
 </script>
 </body>
