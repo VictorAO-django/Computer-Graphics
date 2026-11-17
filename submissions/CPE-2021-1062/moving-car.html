@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moving Car Animation</title>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    background: #87CEEB;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="myCanvas" width="800" height="500"></canvas>
+<script>
+const canvas = document.getElementById("myCanvas");
+const ctx = canvas.getContext("2d");
+
+let carX = -120;
+let carY = 300;
+let carSpeed = 5;
+
+function draw() {
+    // Draw the sky
+    ctx.fillStyle = "rgb(135, 206, 235)";
+    ctx.fillRect(0, 0, 800, 500);
+
+    // Draw the road
+    ctx.fillStyle = "rgb(170, 170, 170)";
+    ctx.fillRect(0, 350, 800, 150);
+
+    // Draw the car body
+    ctx.fillStyle = "rgba(220, 220, 220, 80/255)";
+    ctx.beginPath();
+    ctx.roundRect(carX, carY, 120, 40, 8);
+    ctx.fill();
+
+    // Draw the upper part of the car
+    ctx.fillStyle = "rgb(250, 20, 20)";
+    ctx.beginPath();
+    ctx.roundRect(carX + 25, carY - 30, 70, 35, [10, 10, 0, 0]);
+    ctx.fill();
+
+    // Draw the windows
+    ctx.fillStyle = "rgb(250, 20, 20)";
+    ctx.beginPath();
+    ctx.roundRect(carX + 33, carY - 24, 24, 22, 4);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.roundRect(carX + 63, carY - 24, 24, 22, 4);
+    ctx.fill();
+
+    // Draw the wheels
+    ctx.fillStyle = "rgb(25, 25, 25)";
+    ctx.beginPath();
+    ctx.arc(carX + 27, carY + 40, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(carX + 95, carY + 40, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw wheel centres
+    ctx.fillStyle = "rgb(190, 190, 190)";
+    ctx.beginPath();
+    ctx.arc(carX + 27, carY + 40, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(carX + 95, carY + 40, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Move the car
+    carX += carSpeed;
+
+    // Return the car to the starting edge
+    if (carX > canvas.width) carX = -120;
+
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

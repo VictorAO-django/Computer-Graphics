@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3D Ball, Car and Moon</title>
+<style>
+  :root {
+    --page-bg: #e9edf5; --page-text: #1b2238;
+    --sky-top: #060f26; --sky-bottom: #2a3d72;
+    --ground-far: #1a2c33; --ground-near: #0f1c1f;
+    --road: #2b2e38; --road-line: #e8c547;
+    --moon: #f3efd2; --moon-crater: #cfc9a3;
+    --car: #e4572e; --car-dark: #8f3216; --glass: #9fd3ec;
+    --ball: #ffb703; --ball-stripe: #fb8500;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page-bg: #070b16; --page-text: #e6e9f5;
+      --sky-top: #03081a; --sky-bottom: #1b2a52;
+      --ground-far: #121f25; --ground-near: #0a1214;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg: #070b16; --page-text: #e6e9f5;
+    --sky-top: #03081a; --sky-bottom: #1b2a52;
+    --ground-far: #121f25; --ground-near: #0a1214;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; background: var(--page-bg); color: var(--page-text);
+    font-family: Georgia, "Times New Roman", serif;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  section { width: 100%; max-width: 760px; }
+  h2 { font-size: 1.15rem; font-weight: 400; margin: 0 0 8px; }
+
+  /* ---------- Shared scene and camera ---------- */
+  .scene {
+    --cx: 700px;
+    position: relative; width: 100%; height: 340px; overflow: hidden; border-radius: 14px;
+    background: linear-gradient(to bottom, var(--sky-top) 0, var(--sky-bottom) 38%, var(--ground-far) 38%);
+    perspective: 600px; perspective-origin: 50% 38%;
+  }
+  .scene.space { background: linear-gradient(var(--sky-top), var(--sky-bottom)); perspective-origin: 50% 50%; }
+  .stars {
+    position: absolute; top: 0; left: 0; width: 3px; height: 3px; border-radius: 50%; background: #fff;
+    box-shadow: 40px 30px #fff, 120px 90px #fff, 210px 20px #fff, 300px 100px #fff, 390px 50px #fff,
+      480px 80px #fff, 570px 25px #fff, 650px 105px #fff, 720px 60px #fff, 90px 115px #fff,
+      260px 65px #fff, 540px 115px #fff, 690px 15px #fff;
+    animation: twinkle 3s ease-in-out infinite alternate;
+  }
+  .stars.low { top: 140px; }
+  @keyframes twinkle { from { opacity: .35; } to { opacity: 1; } }
+
+  /* World swings slowly around the object so the depth shows */
+  .world {
+    position: absolute; left: 50%; bottom: 0; width: 0; height: 0;
+    transform-style: preserve-3d; transform-origin: 0 0 var(--pivot);
+    animation: sway 14s ease-in-out infinite alternate;
+  }
+  @keyframes sway { from { transform: rotateY(-14deg); } to { transform: rotateY(14deg); } }
+
+  .floor {
+    position: absolute; left: -2000px; bottom: 0; width: 4000px; height: 6000px;
+    transform-origin: 50% 100%; transform: rotateX(90deg);
+    background:
+      linear-gradient(rgba(255,255,255,.06) 2px, transparent 2px) 0 0 / 120px 120px,
+      linear-gradient(90deg, rgba(255,255,255,.06) 2px, transparent 2px) 0 0 / 120px 120px,
+      linear-gradient(var(--ground-far), var(--ground-near));
+  }
+  .shadow { position: absolute; border-radius: 50%; background: radial-gradient(rgba(0,0,0,.75), transparent 70%); }
+
+  /* ================= 1. BALL ================= */
+  .ball-scene .world { --pivot: -100px; }
+  .ball-shadow { left: calc(2000px - 55px); bottom: 45px; width: 110px; height: 110px; animation: ball-shadow 1.3s infinite; }
+  @keyframes ball-shadow {
+    0%   { transform: scale(1.15); opacity: .9; animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    50%  { transform: scale(.55);  opacity: .3; animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    100% { transform: scale(1.15); opacity: .9; }
+  }
+  .ballpos { position: absolute; left: 0; bottom: 0; width: 0; height: 0; transform-style: preserve-3d; transform: translateZ(-100px); }
+  .hop {
+    position: absolute; left: -55px; bottom: 0; width: 110px; height: 110px;
+    transform-style: preserve-3d; transform-origin: 50% 100%; animation: hop 1.3s infinite;
+  }
+  @keyframes hop {
+    0%   { transform: translateY(0) scale(1.15, .85); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    50%  { transform: translateY(-170px) scale(1, 1); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    100% { transform: translateY(0) scale(1.15, .85); }
+  }
+  .core { position: absolute; inset: 2px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffe08a, var(--ball) 45%, #a35f00 100%); }
+  .tilt, .spin { position: absolute; inset: 0; transform-style: preserve-3d; }
+  .tilt { transform: rotateX(18deg); }
+  .spin { animation: spin-y 2.4s linear infinite; }
+  @keyframes spin-y { to { transform: rotateY(360deg); } }
+  .spin b { position: absolute; inset: 0; border: 4px solid var(--ball-stripe); border-radius: 50%; }
+
+  /* ================= 2. CAR ================= */
+  .car-scene .world { --pivot: -250px; }
+  .road {
+    position: absolute; left: 0; width: 100%; bottom: 130px; height: 240px; background: var(--road);
+    border-top: 5px solid rgba(255,255,255,.35); border-bottom: 5px solid rgba(255,255,255,.35);
+  }
+  .road::before { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 4px); height: 8px;
+    background: repeating-linear-gradient(90deg, var(--road-line) 0 50px, transparent 50px 110px); }
+  .car-shadow { left: calc(2000px - 120px); bottom: 195px; width: 240px; height: 110px; animation: car-shadow 8s linear infinite; }
+  @keyframes car-shadow { from { transform: translateX(calc(var(--cx) * -1)); } to { transform: translateX(var(--cx)); } }
+  .lamp { position: absolute; left: var(--x); bottom: 0; width: 6px; height: 170px; margin-left: -3px;
+    background: #4a4f5c; transform: translateZ(-460px); }
+  .lamp::after { content: ""; position: absolute; top: -4px; left: -12px; width: 30px; height: 9px; border-radius: 5px;
+    background: #fff1b8; box-shadow: 0 8px 40px 14px rgba(255, 226, 140, .4); }
+
+  .car { position: absolute; left: 0; bottom: 0; width: 0; height: 0; transform-style: preserve-3d; animation: drive 8s linear infinite; }
+  @keyframes drive {
+    from { transform: translate3d(calc(var(--cx) * -1), 0, -250px); }
+    to   { transform: translate3d(var(--cx), 0, -250px); }
+  }
+  .box { position: absolute; width: var(--l); height: var(--h); transform-style: preserve-3d; }
+  .box i { position: absolute; display: block; backface-visibility: hidden;
+    background-color: var(--c); background-image: linear-gradient(#0000, #0000); }
+  .pz, .nz { left: 0; top: 0; width: var(--l); height: var(--h); }
+  .px, .nx { width: var(--w); height: var(--h); left: calc((var(--l) - var(--w)) / 2); top: 0; }
+  .py, .ny { width: var(--l); height: var(--w); left: 0; top: calc((var(--h) - var(--w)) / 2); }
+  .pz { transform: translateZ(calc(var(--w) / 2)); }
+  .nz { transform: rotateY(180deg) translateZ(calc(var(--w) / 2)); background-image: linear-gradient(#0005, #0005); }
+  .px { transform: rotateY(90deg) translateZ(calc(var(--l) / 2)); background-image: linear-gradient(#0003, #0003); }
+  .nx { transform: rotateY(-90deg) translateZ(calc(var(--l) / 2)); background-image: linear-gradient(#0004, #0004); }
+  .py { transform: rotateX(90deg) translateZ(calc(var(--h) / 2)); background-image: linear-gradient(#fff3, #fff3); }
+  .ny { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); }
+  .body  { --l: 220px; --w: 100px; --h: 36px; --c: var(--car);   left: -110px; bottom: 14px; }
+  .cabin { --l: 110px; --w: 88px;  --h: 32px; --c: var(--glass); left: -75px;  bottom: 50px; }
+  .cabin i { border: 4px solid var(--car-dark); }
+  .cabin .py { background-color: var(--car-dark); }
+  .body .px::before, .body .px::after, .body .nx::before, .body .nx::after {
+    content: ""; position: absolute; top: 8px; width: 16px; height: 10px; border-radius: 3px; }
+  .body .px::before, .body .nx::before { left: 8px; }
+  .body .px::after,  .body .nx::after  { right: 8px; }
+  .body .px::before, .body .px::after { background: #fff6b0; box-shadow: 0 0 20px 8px rgba(255, 246, 176, .7); }
+  .body .nx::before, .body .nx::after { background: #ff3b3b; box-shadow: 0 0 12px 3px rgba(255, 59, 59, .6); }
+  .wheel { position: absolute; bottom: 0; left: calc(var(--x) - 23px); width: 46px; height: 46px;
+    border-radius: 50%; background: #15151a; border: 7px solid #3a3a44; transform: translateZ(var(--z)); }
+  .wheel::before, .wheel::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 2px);
+    height: 4px; background: #bbb; animation: spin .45s linear infinite; }
+  .wheel::before { animation-name: spin2; }
+  @keyframes spin  { to { transform: rotate(360deg); } }
+  @keyframes spin2 { from { transform: rotate(90deg); } to { transform: rotate(450deg); } }
+
+  /* ================= 3. MOON ================= */
+  .moon {
+    position: absolute; left: 50%; top: 50%; width: 200px; height: 200px; margin: -100px 0 0 -100px;
+    border-radius: 50%; overflow: hidden; background: var(--moon);
+    box-shadow: 0 0 120px 30px rgba(243, 239, 210, .3);
+    animation: moon-arc 18s linear infinite;
+  }
+  .moon::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 35%, var(--moon-crater) 0 9%, transparent 10%),
+      radial-gradient(circle at 62% 64%, var(--moon-crater) 0 6%, transparent 7%),
+      radial-gradient(circle at 78% 28%, var(--moon-crater) 0 5%, transparent 6%),
+      radial-gradient(circle at 42% 78%, var(--moon-crater) 0 4%, transparent 5%),
+      radial-gradient(circle at 15% 60%, var(--moon-crater) 0 3%, transparent 4%);
+    background-size: 200px 200px; background-repeat: repeat-x;
+    animation: craters 16s linear infinite;      /* rotation of the surface */
+  }
+  .moon::after { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 32% 30%, transparent 0 35%, rgba(5, 10, 30, .6) 100%); }
+  @keyframes craters { to { background-position-x: 200px; } }
+  @keyframes moon-arc {
+    0%   { transform: translate3d(-560px, 60px, -700px); }
+    25%  { transform: translate3d(-280px, -20px, -450px); }
+    50%  { transform: translate3d(0, -60px, -300px); }
+    75%  { transform: translate3d(280px, -20px, -450px); }
+    100% { transform: translate3d(560px, 60px, -700px); }
+  }
+
+  @media (max-width: 560px) {
+    .scene { --cx: 520px; height: 300px; }
+    .moon { width: 160px; height: 160px; margin: -80px 0 0 -80px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .world { animation: none; }
+    .car, .car-shadow, .moon { animation-duration: 40s; }
+  }
+</style>
+</head>
+<body>
+
+  <section>
+    <h2>1. Bouncing ball</h2>
+    <div class="scene ball-scene" role="img" aria-label="A 3D ball bouncing on the ground">
+      <div class="stars"></div>
+      <div class="world">
+        <div class="floor"><div class="shadow ball-shadow"></div></div>
+        <div class="ballpos">
+          <div class="hop">
+            <div class="core"></div>
+            <div class="tilt"><div class="spin">
+              <b style="transform:rotateY(15deg)"></b><b style="transform:rotateY(45deg)"></b>
+              <b style="transform:rotateY(75deg)"></b><b style="transform:rotateY(105deg)"></b>
+              <b style="transform:rotateY(135deg)"></b><b style="transform:rotateY(165deg)"></b>
+              <b style="transform:rotateX(90deg)"></b>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Moving car</h2>
+    <div class="scene car-scene" role="img" aria-label="A 3D car driving along a road">
+      <div class="stars"></div>
+      <div class="world">
+        <div class="floor"><div class="road"></div><div class="shadow car-shadow"></div></div>
+        <div class="lamp" style="--x:-600px"></div><div class="lamp" style="--x:-300px"></div>
+        <div class="lamp" style="--x:0px"></div><div class="lamp" style="--x:300px"></div>
+        <div class="lamp" style="--x:600px"></div>
+        <div class="car">
+          <div class="box body"><i class="pz"></i><i class="nz"></i><i class="px"></i><i class="nx"></i><i class="py"></i><i class="ny"></i></div>
+          <div class="box cabin"><i class="pz"></i><i class="nz"></i><i class="px"></i><i class="nx"></i><i class="py"></i><i class="ny"></i></div>
+          <b class="wheel" style="--x:70px;--z:53px"></b><b class="wheel" style="--x:-70px;--z:53px"></b>
+          <b class="wheel" style="--x:70px;--z:-53px"></b><b class="wheel" style="--x:-70px;--z:-53px"></b>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Moving and rotating moon</h2>
+    <div class="scene space" role="img" aria-label="A 3D moon rotating as it moves across the sky">
+      <div class="stars"></div><div class="stars low"></div>
+      <div class="moon"></div>
+    </div>
+  </section>
+
+</body>
+</html>

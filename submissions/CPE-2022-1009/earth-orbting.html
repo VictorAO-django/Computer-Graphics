@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earth Orbiting the Moon</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(circle, #101b35, #02040c);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Space scene */
+.space {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Stars */
+.star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 8px white;
+}
+
+.star:nth-child(1) { top: 15%; left: 20%; }
+.star:nth-child(2) { top: 30%; left: 80%; }
+.star:nth-child(3) { top: 70%; left: 15%; }
+.star:nth-child(4) { top: 85%; left: 75%; }
+.star:nth-child(5) { top: 20%; left: 65%; }
+.star:nth-child(6) { top: 60%; left: 90%; }
+.star:nth-child(7) { top: 45%; left: 10%; }
+.star:nth-child(8) { top: 80%; left: 45%; }
+.star:nth-child(9) { top: 10%; left: 45%; }
+.star:nth-child(10) { top: 55%; left: 55%; }
+
+/* Moon at the center */
+.moon {
+    width: 110px;
+    height: 110px;
+    position: absolute;
+    border-radius: 50%;
+
+    background:
+    radial-gradient(circle at 30% 30%,
+    #eeeeee, #999999 55%, #444444);
+
+    box-shadow:
+    0 0 25px rgba(200, 200, 200, 0.4),
+    inset -15px -10px 25px #222;
+    
+    z-index: 2;
+}
+
+/* Moon craters */
+.moon::before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #888;
+    border-radius: 50%;
+    top: 25px;
+    left: 30px;
+    box-shadow:
+    25px 30px 0 -5px #777,
+    -5px 45px 0 -7px #666;
+}
+
+/* Orbit path */
+.orbit {
+    width: 480px;
+    height: 480px;
+    border: 1px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+    position: absolute;
+    animation: rotate 12s linear infinite;
+}
+
+/* Earth */
+.earth {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+
+    position: absolute;
+    top: -38px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    background:
+    radial-gradient(circle at 30% 30%,
+    #78d9ff, #1475d1 55%, #071e55);
+
+    box-shadow:
+    0 0 20px #168cff,
+    inset -12px -8px 15px #06143c;
+    
+    overflow: hidden;
+}
+
+/* Continents */
+.earth::before {
+    content: "";
+    position: absolute;
+    width: 30px;
+    height: 25px;
+    background: #36a653;
+    border-radius: 50% 30% 60% 40%;
+    top: 15px;
+    left: 12px;
+    transform: rotate(25deg);
+    box-shadow:
+    25px 25px 0 -5px #27964c,
+    5px 40px 0 -8px #4cae55;
+}
+
+/* Earth orbit rotation */
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="space">
+
+    <!-- Stars -->
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+    <div class="star"></div>
+
+    <!-- Moon -->
+    <div class="moon"></div>
+
+    <!-- Orbit and Earth -->
+    <div class="orbit">
+        <div class="earth"></div>
+    </div>
+
+</div>
+
+</body>
+</html>

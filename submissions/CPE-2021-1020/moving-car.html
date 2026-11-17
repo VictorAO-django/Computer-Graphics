@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Car</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #87ceeb; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // ---------- Scene ----------
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = new THREE.Fog(0x87ceeb, 25, 70);
+
+  const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 200);
+  camera.position.set(0, 4, 14);
+  camera.lookAt(0, 1, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  // ---------- Lights ----------
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x556655, 0.7));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+  sun.position.set(6, 12, 8);
+  sun.castShadow = true;
+  sun.shadow.camera.left = -20;
+  sun.shadow.camera.right = 20;
+  sun.shadow.camera.top = 10;
+  sun.shadow.camera.bottom = -10;
+  scene.add(sun);
+
+  // ---------- Ground and road ----------
+  const grass = new THREE.Mesh(
+    new THREE.PlaneGeometry(200, 100),
+    new THREE.MeshStandardMaterial({ color: 0x4a7c3a })
+  );
+  grass.rotation.x = -Math.PI / 2;
+  grass.receiveShadow = true;
+  scene.add(grass);
+
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(200, 5),
+    new THREE.MeshStandardMaterial({ color: 0x2b2b2b })
+  );
+  road.rotation.x = -Math.PI / 2;
+  road.position.y = 0.01;
+  road.receiveShadow = true;
+  scene.add(road);
+
+  // Dashed centre line that scrolls with the road
+  const dashes = new THREE.Group();
+  for (let i = -20; i <= 20; i++) {
+    const dash = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 0.12),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    dash.rotation.x = -Math.PI / 2;
+    dash.position.set(i * 4, 0.02, 0);
+    dashes.add(dash);
+  }
+  scene.add(dashes);
+
+  // ---------- Car ----------
+  const car = new THREE.Group();
+
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.4, metalness: 0.5 });
+  const glassMat = new THREE.MeshStandardMaterial({ color: 0x9fd3e6, roughness: 0.1, metalness: 0.8 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(4, 0.8, 1.8), bodyMat);
+  body.position.y = 0.8;
+  body.castShadow = true;
+  car.add(body);
+
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(2, 0.7, 1.6), glassMat);
+  cabin.position.set(-0.2, 1.55, 0);
+  cabin.castShadow = true;
+  car.add(cabin);
+
+  // Headlights (front faces +x) and tail lights
+  const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffcc });
+  const tailMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
+  [-0.6, 0.6].forEach(z => {
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.3), lightMat);
+    head.position.set(2.0, 0.9, z);
+    car.add(head);
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.3), tailMat);
+    tail.position.set(-2.0, 0.9, z);
+    car.add(tail);
+  });
+
+  // Wheels
+  const wheels = [];
+  const tyreMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+  const hubMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8, roughness: 0.3 });
+  [[-1.3, 1], [1.3, 1], [-1.3, -1], [1.3, -1]].forEach(([x, z]) => {
+    const wheel = new THREE.Group();
+    const tyre = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.35, 24), tyreMat);
+    tyre.rotation.x = Math.PI / 2;
+    tyre.castShadow = true;
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.38, 12), hubMat);
+    hub.rotation.x = Math.PI / 2;
+    // A small spoke so the rotation is visible
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 0.4), hubMat);
+    wheel.add(tyre, hub, spoke);
+    wheel.position.set(x, 0.45, z * 0.95);
+    car.add(wheel);
+    wheels.push(wheel);
+  });
+
+  car.position.y = 0;
+  scene.add(car);
+
+  // ---------- Animation ----------
+  const SPEED = 8;            // world units per second
+  const WHEEL_RADIUS = 0.45;
+  const START_X = -22;
+  const END_X = 22;
+  car.position.x = START_X;
+
+  let last = performance.now();
+  let t = 0;
+
+  function animate(now) {
+    requestAnimationFrame(animate);
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    t += dt;
+
+    car.position.x += SPEED * dt;
+    if (car.position.x > END_X) car.position.x = START_X;
+
+    // Wheels roll without slipping; body bobs slightly
+    wheels.forEach(w => (w.rotation.z -= (SPEED * dt) / WHEEL_RADIUS));
+    car.position.y = Math.sin(t * 14) * 0.015;
+
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(animate);
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+</script>
+</body>
+</html>

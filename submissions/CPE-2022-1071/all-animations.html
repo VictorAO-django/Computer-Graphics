@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car, Moon and Ball Animations</title>
+
+<style>
+/* =====================================================
+   SETTINGS: change the values here, save, and refresh.
+   You do not need to touch anything else.
+   ===================================================== */
+:root {
+
+  /* ---------- CAR ---------- */
+  --car-speed: 8s;            /* time for one trip. Smaller = faster */
+  --car-direction: normal;    /* normal = left to right, reverse = right to left */
+  --car-color: #d62839;
+  --wheel-speed: 0.6s;        /* time for one wheel turn. Smaller = faster */
+  --wheel-direction: normal;  /* normal or reverse */
+
+  /* ---------- MOON ---------- */
+  --moon-speed: 12s;          /* time to cross the sky. Smaller = faster */
+  --moon-height: 190px;       /* how high the moon rises */
+  --moon-color: #fffde7;
+
+  /* ---------- BALL ---------- */
+  --ball-speed: 1.2s;         /* time for one bounce. Smaller = faster */
+  --bounce-height: 170px;     /* how high the ball goes */
+  --ball-color: #d84315;
+}
+
+
+/* =====================================================
+   GENERAL PAGE STYLES (no need to change)
+   ===================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #1b1b1f; color: #eee; }
+h2 { font-size: 15px; padding: 10px 16px; background: #26262c; }
+
+/* Each scene is a box. Things that move outside the box are hidden. */
+.scene { position: relative; height: 300px; overflow: hidden; }
+
+
+/* =====================================================
+   1. CAR
+   ===================================================== */
+.car-scene { background: linear-gradient(#8ecdf7, #d9f0ff); }
+
+.road {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 50px; background: #3a3a40;
+}
+
+/* The car is one box. The body, cabin and wheels sit inside it. */
+.car {
+  position: absolute; left: 0; bottom: 50px;
+  width: 200px; height: 90px;
+
+  /* animation: name, time, speed-style, repeat, direction */
+  animation-name: drive;
+  animation-duration: var(--car-speed);
+  animation-timing-function: linear;       /* linear = same speed all the way */
+  animation-iteration-count: infinite;     /* infinite = never stops */
+  animation-direction: var(--car-direction);
+}
+
+.car-body {
+  position: absolute; bottom: 20px;
+  width: 200px; height: 42px;
+  background: var(--car-color); border-radius: 12px 14px 6px 6px;
+}
+
+.car-cabin {
+  position: absolute; bottom: 60px; left: 42px;
+  width: 110px; height: 34px;
+  background: var(--car-color); border-radius: 28px 34px 0 0;
+}
+
+.car-window {
+  position: absolute; bottom: 62px; left: 54px;
+  width: 88px; height: 27px;
+  background: #bfe6ff; border-radius: 20px 24px 0 0;
+}
+
+.wheel {
+  position: absolute; bottom: 0;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 6px solid #111;
+  background: repeating-conic-gradient(#aaa 0 25deg, #444 25deg 60deg);  /* spokes */
+
+  animation-name: spin;
+  animation-duration: var(--wheel-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: var(--wheel-direction);
+}
+.wheel-back  { left: 24px; }
+.wheel-front { left: 138px; }
+
+/* The car starts just outside the left edge and ends at the right edge.
+   100vw means "the full width of the screen". */
+@keyframes drive {
+  from { transform: translateX(-240px); }
+  to   { transform: translateX(100vw); }
+}
+
+/* The wheel turns one full circle */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* =====================================================
+   2. MOON
+   ===================================================== */
+.moon-scene { background: linear-gradient(#050816, #1a2550); }
+
+/* Two boxes work together to make an arc:
+   .moon-sideways moves the moon across (left to right)
+   .moon moves it up and then down                        */
+.moon-sideways {
+  position: absolute; left: 0; bottom: -30px;
+  width: 90px; height: 90px;
+
+  animation-name: moon-across;
+  animation-duration: var(--moon-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.moon {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--moon-color);
+  box-shadow: 0 0 40px 10px rgba(255, 253, 200, 0.35);   /* the glow */
+
+  animation-name: moon-updown;
+  animation-duration: var(--moon-speed);
+  animation-iteration-count: infinite;
+}
+
+/* The hills hide the moon at the start and the end, so it looks like it rises and sets */
+.hills {
+  position: absolute; left: -10%; bottom: -30px;
+  width: 120%; height: 70px;
+  background: #070a14; border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+@keyframes moon-across {
+  from { transform: translateX(-120px); }
+  to   { transform: translateX(100vw); }
+}
+
+/* ease-out = fast then slow (going up). ease-in = slow then fast (coming down). */
+@keyframes moon-updown {
+  0%   { transform: translateY(0); animation-timing-function: ease-out; }
+  50%  { transform: translateY(calc(var(--moon-height) * -1)); animation-timing-function: ease-in; }
+  100% { transform: translateY(0); }
+}
+
+
+/* =====================================================
+   3. BOUNCING BALL
+   ===================================================== */
+.ball-scene { background: linear-gradient(#cfeaff, #eef8ff); }
+
+.ground {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 50px; background: #5fa35a;
+}
+
+.ball {
+  position: absolute; left: 50%; margin-left: -30px; bottom: 50px;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--ball-color);
+  transform-origin: bottom center;    /* the ball squashes from its bottom */
+
+  animation-name: bounce;
+  animation-duration: var(--ball-speed);
+  animation-iteration-count: infinite;
+}
+
+@keyframes bounce {
+  /* 0% = top of the bounce. The ball falls (ease-in = starts slow, speeds up) */
+  0%   { transform: translateY(calc(var(--bounce-height) * -1)); animation-timing-function: ease-in; }
+
+  /* 45% = the ball touches the ground */
+  45%  { transform: translateY(0) scale(1, 1); animation-timing-function: ease-out; }
+
+  /* 50% = the ball is squashed flat */
+  50%  { transform: translateY(0) scale(1.25, 0.75); animation-timing-function: ease-out; }
+
+  /* 55% = back to round, then it goes up (ease-out = starts fast, slows down) */
+  55%  { transform: translateY(0) scale(1, 1); animation-timing-function: ease-out; }
+
+  /* 100% = back at the top */
+  100% { transform: translateY(calc(var(--bounce-height) * -1)); }
+}
+</style>
+</head>
+
+<body>
+
+<h2>1. Moving car</h2>
+<div class="scene car-scene">
+  <div class="road"></div>
+  <div class="car">
+    <div class="car-cabin"></div>
+    <div class="car-window"></div>
+    <div class="car-body"></div>
+    <div class="wheel wheel-back"></div>
+    <div class="wheel wheel-front"></div>
+  </div>
+</div>
+
+<h2>2. Moving moon</h2>
+<div class="scene moon-scene">
+  <div class="moon-sideways">
+    <div class="moon"></div>
+  </div>
+  <div class="hills"></div>
+</div>
+
+<h2>3. Bouncing ball</h2>
+<div class="scene ball-scene">
+  <div class="ground"></div>
+  <div class="ball"></div>
+</div>
+
+</body>
+</html>

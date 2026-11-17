@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animated Moon</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: #050c20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+canvas { width: 800px; height: 500px; display: block; }
+</style>
+</head>
+<body>
+<canvas id="sky" width="800" height="500"></canvas>
+<script>
+const canvas = document.getElementById("sky");
+const ctx = canvas.getContext("2d");
+
+let progress = 0;
+let speed = 0.0025;
+let moonX, moonY;
+
+// Generate fixed stars using the same seeded random sequence each frame
+let stars = [];
+function randomSeed(seed) {
+    let value = seed;
+    return function() {
+        value = (value * 16807) % 2147483647;
+        return (value - 1) / 2147483646;
+    };
+}
+const random = randomSeed(12);
+for (let i = 0; i < 150; i++) {
+    stars.push({
+        x: random() * 800,
+        y: random() * 450,
+        size: 1 + random() * 2,
+        alpha: 100 + random() * 130
+    });
+}
+
+function draw() {
+    // Draw the night sky
+    ctx.fillStyle = "rgb(5, 12, 32)";
+    ctx.fillRect(0, 0, 800, 500);
+
+    // Draw fixed stars
+    stars.forEach(star => {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(200, 210, 255, ${star.alpha / 255})`;
+        ctx.arc(star.x, star.y, star.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Calculate the moon's arch-shaped path
+    moonX = -60 + progress * (800 + 120);
+    moonY = 320 - Math.sin(Math.PI * progress) * 220;
+
+    // Moonlight glow
+    for (let r = 150; r > 65; r -= 5) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(160, 190, 255, 3/255)";
+        ctx.arc(moonX, moonY, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Full moon
+    ctx.beginPath();
+    ctx.fillStyle = "rgb(225, 226, 218)";
+    ctx.arc(moonX, moonY, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dark horizon
+    ctx.fillStyle = "rgb(3, 8, 20)";
+    ctx.fillRect(0, 465, 800, 35);
+
+    // Move the moon along its arch
+    progress += speed;
+
+    // Restart the animation when the moon sets
+    if (progress > 1) progress = 0;
+
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

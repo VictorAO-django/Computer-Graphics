@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group 6 — Assignment Submissions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { font-family: 'Poppins', sans-serif; }
+
+  /* Mobile default: sidebar (list) shown, main (detail) hidden. Once a student is
+     picked, body gets "showing-detail" which swaps that. Desktop (lg+): sidebar is a
+     fixed-width, full-height column and main always fills the rest, regardless. */
+  #mainPanel { display: none; }
+  body.showing-detail #sidebar { display: none; }
+  body.showing-detail #mainPanel { display: flex; }
+
+  @media (min-width: 1024px) {
+    #sidebar, #mainPanel,
+    body.showing-detail #sidebar, body.showing-detail #mainPanel {
+      display: flex !important;
+    }
+    #sidebar { height: 100%; position: sticky; top: 0; }
+    #mainPanel { height: 100%; overflow-y: auto; }
+  }
+
+  /* the iframe is rendered at its real pixel size (NATIVE_W x NATIVE_H) and scaled
+     down with a transform when the wrapper is narrower than that — used on mobile
+     so the whole canvas is visible with no inner x/y scrollbars, just shrunk to fit. */
+  #viewerFrame { transform-origin: top left; }
+
+  /* custom scrollbar: light gray track, medium gray thumb */
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: #f5f5f5; }
+  ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 9999px; border: 2px solid #f5f5f5; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #a3a3a3; background-clip: padding-box; }
+  * { scrollbar-width: thin; scrollbar-color: #d4d4d4 #f5f5f5; }
+
+  /* segmented-control tabs for switching between a student's animations */
+  .seg-tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 9999px;
+    font-size: 0.875rem; font-weight: 500;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .seg-tab.active { background: #2563eb; color: #fff; }
+  .seg-tab.inactive { color: #737373; }
+  .seg-tab.inactive:hover { background: #e5e5e5; color: #262626; }
+
+  /* lightbox for viewing a student's full-size photo */
+  #lightbox { display: none; }
+  #lightbox.open { display: flex; }
+</style>
+</head>
+<body class="min-h-screen bg-neutral-200 text-neutral-900">
+ <div id="appShell" class="bg-neutral-100 lg:flex lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
+
+  <!-- ===================== SIDEBAR (left nav) ===================== -->
+  <aside id="sidebar" class="flex-col w-full lg:w-[340px] lg:shrink-0 bg-white lg:border-r lg:border-neutral-200 lg:overflow-y-auto">
+    <div class="px-5 pt-5 pb-4 bg-white border-b border-neutral-200">
+      <div class="flex items-center gap-2">
+        <!-- <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">G6</div> -->
+        <div class="min-w-0">
+          <p class="font-semibold text-2xl leading-tight truncate text-blue-500">Group 6 <span id="countLabel"></span></p>
+          <p class="text-xs text-neutral-500 leading-tight">Computer Graphics 500Level</p>
+        </div>
+      </div>
+
+      <div class="relative mt-4">
+        <i data-lucide="search" class="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        <input
+          id="searchBox"
+          type="text"
+          placeholder="Search name or matric number"
+          class="w-full pl-10 pr-9 py-2.5 rounded-full bg-neutral-100 border border-transparent text-sm placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors"
+        >
+        <button
+          id="clearSearch"
+          class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+        >
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="studentList" class="flex flex-col gap-2.5 p-3"></div>
+    <p id="emptyState" class="hidden text-center text-neutral-400 py-16 text-sm">
+      No matching student found.
+    </p>
+  </aside>
+
+  <!-- ===================== MAIN (detail / preview) ===================== -->
+  <main id="mainPanel" class="flex-col flex-1 min-w-0 bg-neutral-100">
+    <div class="p-4 lg:p-7 max-w-[1100px] w-full mx-auto">
+      <button id="backBtn" class="lg:hidden mb-4 inline-flex items-center gap-1.5 bg-white border border-neutral-200 rounded-full pl-3 pr-4 py-2 text-sm font-medium text-neutral-600 hover:border-neutral-300 hover:text-neutral-900 active:scale-[0.97] transition">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to list
+      </button>
+
+      <div id="detailPlaceholder" class="flex flex-col items-center justify-center text-center bg-white border border-dashed border-neutral-300 rounded-2xl py-24 text-neutral-400 text-sm">
+        Select a student to preview their assignment
+      </div>
+
+      <div id="detailContent" class="hidden flex-col gap-4 bg-white border border-neutral-200 rounded-2xl p-4 lg:p-6">
+        <div class="flex items-center gap-3">
+          <div id="viewerAvatar" class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 overflow-hidden bg-neutral-100"></div>
+          <div class="min-w-0">
+            <h2 id="viewerName" class="text-base font-semibold leading-tight"></h2>
+            <p id="viewerMatric" class="text-sm text-neutral-500 leading-tight"></p>
+          </div>
+        </div>
+
+        <div id="viewerTabs" class="hidden flex flex-wrap gap-1.5 bg-neutral-100 rounded-full p-1.5 w-fit"></div>
+
+        <div id="viewerFrameWrapper" class="bg-neutral-50 rounded-xl border border-neutral-200 overflow-hidden">
+          <iframe id="viewerFrame" class="border-0 block"></iframe>
+        </div>
+
+        <div id="pendingState" class="hidden flex flex-col items-center justify-center text-center bg-neutral-50 border border-dashed border-neutral-300 rounded-xl py-20 text-neutral-400 text-sm gap-2">
+          <i data-lucide="clock" class="w-6 h-6"></i>
+          No submission yet
+        </div>
+      </div>
+    </div>
+  </main>
+
+ </div>
+
+  <!-- ===================== PHOTO LIGHTBOX ===================== -->
+  <div id="lightbox" class="fixed inset-0 z-50 bg-black/80 items-center justify-center p-6 cursor-zoom-out">
+    <img id="lightboxImg" src="" alt="" class="max-w-full max-h-full rounded-lg">
+    <button id="lightboxClose" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <script>
+    let students = [];
+    let selectedMatric = null;
+
+    const sidebar       = document.getElementById("sidebar");
+    const mainPanel      = document.getElementById("mainPanel");
+    const studentList     = document.getElementById("studentList");
+    const emptyState      = document.getElementById("emptyState");
+    const countLabel      = document.getElementById("countLabel");
+    const searchBox        = document.getElementById("searchBox");
+    const detailPlaceholder = document.getElementById("detailPlaceholder");
+    const detailContent     = document.getElementById("detailContent");
+    const pendingState      = document.getElementById("pendingState");
+    const viewerAvatar     = document.getElementById("viewerAvatar");
+    const viewerName       = document.getElementById("viewerName");
+    const viewerMatric     = document.getElementById("viewerMatric");
+    const viewerTabs       = document.getElementById("viewerTabs");
+    const viewerFrame      = document.getElementById("viewerFrame");
+    const viewerFrameWrapper = document.getElementById("viewerFrameWrapper");
+
+    // These files are same-origin (served from this same site), so once the iframe
+    // finishes loading we can read its REAL content size directly from its document
+    // and size the iframe to match exactly — no scrolling, no guessed/wasted height.
+    // If the wrapper is narrower than that content, the whole thing is scaled down
+    // with a CSS transform instead, so nothing is cropped and there's still no
+    // inner x/y scrollbar.
+    function fitIframe() {
+      let doc;
+      try { doc = viewerFrame.contentDocument; } catch (e) { doc = null; }
+      if (!doc || !doc.body) return; // nothing loaded yet
+
+      // These pages use min-height:100vh on html/body, which is relative to the
+      // IFRAME's own current height — so scrollHeight would just circularly report
+      // back whatever height we last gave it. Neutralize that before measuring, so
+      // scrollHeight reflects the actual content (canvas + any title/button) instead.
+      if (!doc.getElementById("__fitOverride")) {
+        const override = doc.createElement("style");
+        override.id = "__fitOverride";
+        override.textContent = "html,body{min-height:0 !important;height:auto !important;}";
+        doc.head.appendChild(override);
+      }
+
+      const contentW = Math.max(doc.documentElement.scrollWidth, doc.body.scrollWidth);
+      const contentH = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight);
+      const wrapperW = viewerFrameWrapper.clientWidth;
+
+      if (wrapperW > 0 && wrapperW < contentW) {
+        const scale = wrapperW / contentW;
+        viewerFrame.style.width = contentW + "px";
+        viewerFrame.style.height = contentH + "px";
+        viewerFrame.style.transform = `scale(${scale})`;
+        viewerFrameWrapper.style.height = Math.round(contentH * scale) + "px";
+      } else {
+        viewerFrame.style.width = "100%";
+        viewerFrame.style.height = contentH + "px";
+        viewerFrame.style.transform = "none";
+        viewerFrameWrapper.style.height = "";
+      }
+    }
+
+    viewerFrame.addEventListener("load", fitIframe);
+
+    window.addEventListener("resize", () => {
+      if (!detailContent.classList.contains("hidden")) fitIframe();
+    });
+
+    // pastel fallback colours for students with no photo
+    const AVATAR_COLORS = [
+      "bg-indigo-50 text-indigo-700",
+      "bg-amber-50 text-amber-700",
+      "bg-emerald-50 text-emerald-700",
+      "bg-rose-50 text-rose-700",
+      "bg-sky-50 text-sky-700",
+      "bg-violet-50 text-violet-700",
+    ];
+
+    const FILE_META = {
+      "bouncing-ball": { label: "Ball", icon: "circle-dot" },
+      "moving-car": { label: "Car", icon: "car" },
+      "earth-orbting": { label: "Moon", icon: "moon" },
+    };
+
+    function colorFor(name) {
+      let hash = 0;
+      for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) % AVATAR_COLORS.length;
+      return AVATAR_COLORS[hash];
+    }
+
+    function initials(name) {
+      return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
+    }
+
+    // renders either a photo <img> (a LOCAL file path from the codebase, e.g.
+    // "submissions/CPE-2021-1057/photo.jpg" — never an external URL) or an
+    // initials circle, into the given element. When a photo exists, clicking it
+    // opens a full-size lightbox so the HOD can actually see the picture clearly.
+    function paintAvatar(el, student, sizeClasses) {
+      el.className = `${sizeClasses} rounded-full flex items-center justify-center text-sm font-semibold shrink-0 overflow-hidden ${student.photo ? "bg-neutral-100 cursor-zoom-in hover:ring-2 hover:ring-blue-400 transition" : colorFor(student.name)}`;
+      if (student.photo) {
+        const photoUrl = `submissions/${student.folder}/${student.photo}`;
+        el.innerHTML = `<img src="${photoUrl}" alt="${student.name}" class="w-full h-full object-cover">`;
+        el.onclick = (e) => { e.stopPropagation(); openLightbox(photoUrl, student.name); };
+      } else {
+        el.innerHTML = initials(student.name);
+        el.onclick = null;
+      }
+    }
+
+    function openLightbox(src, alt) {
+      document.getElementById("lightboxImg").src = src;
+      document.getElementById("lightboxImg").alt = alt;
+      document.getElementById("lightbox").classList.add("open");
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightbox").classList.remove("open");
+    }
+
+    function prettyFileName(fileName) {
+      return fileName
+        .replace(/\.html?$/i, "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+
+    function fileMeta(fileName) {
+      const key = fileName.replace(/\.html?$/i, "").toLowerCase();
+      return FILE_META[key] || { label: "File", icon: "file-text" };
+    }
+
+    function badgeHTML(fileName) {
+      const { label, icon } = fileMeta(fileName);
+      return `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-neutral-600 bg-neutral-100 rounded px-1.5 py-0.5">
+        <i data-lucide="${icon}" class="w-3 h-3"></i>${label}
+      </span>`;
+    }
+
+    function pendingBadgeHTML() {
+      return `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 rounded px-1.5 py-0.5">
+        <i data-lucide="clock" class="w-3 h-3"></i>Pending
+      </span>`;
+    }
+
+    function renderList(filtered) {
+      studentList.innerHTML = "";
+      emptyState.classList.toggle("hidden", filtered.length > 0);
+      countLabel.textContent = `(${students.length} student${students.length === 1 ? "" : "s"})`;
+
+      filtered.forEach((student) => {
+        const row = document.createElement("button");
+        const isSelected = student.matric === selectedMatric;
+        row.className =
+          "w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-xl border transition " +
+          (isSelected
+            ? "bg-blue-50 border-blue-200"
+            : "bg-gray-100 border-neutral-200 hover:border-gray-300");
+
+        const badges = student.files.length ? student.files.map(badgeHTML).join("") : pendingBadgeHTML();
+
+        const avatar = document.createElement("div");
+        paintAvatar(avatar, student, "w-12 h-12");
+
+        row.appendChild(avatar);
+
+        const info = document.createElement("div");
+        info.className = "min-w-0 flex-1";
+        info.innerHTML = `
+          <p class="font-medium text-neutral-900 text-sm leading-snug">${student.name}</p>
+          <p class="text-xs text-neutral-500">${student.matric}</p>
+          <div class="flex flex-wrap gap-1 mt-1.5">${badges}</div>
+        `;
+        row.appendChild(info);
+
+        const chevron = document.createElement("i");
+        chevron.setAttribute("data-lucide", "chevron-right");
+        chevron.className = "w-4 h-4 text-neutral-300 shrink-0";
+        row.appendChild(chevron);
+
+        row.addEventListener("click", () => openStudent(student));
+        studentList.appendChild(row);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function openStudent(student) {
+      selectedMatric = student.matric;
+
+      paintAvatar(viewerAvatar, student, "w-11 h-11");
+      viewerName.textContent = student.name;
+      viewerMatric.textContent = student.matric;
+
+      const fileUrl = (fileName) => `submissions/${student.folder}/${fileName}`;
+
+      if (student.files.length === 0) {
+        viewerTabs.classList.add("hidden");
+        viewerTabs.innerHTML = "";
+        viewerFrameWrapper.classList.add("hidden");
+        pendingState.classList.remove("hidden");
+      } else {
+        pendingState.classList.add("hidden");
+        viewerFrameWrapper.classList.remove("hidden");
+
+        if (student.files.length === 1) {
+          viewerTabs.classList.add("hidden");
+          viewerTabs.innerHTML = "";
+          viewerFrame.src = fileUrl(student.files[0]);
+        } else {
+          viewerTabs.classList.remove("hidden");
+          viewerTabs.innerHTML = "";
+
+          student.files.forEach((fileName, i) => {
+            const { icon } = fileMeta(fileName);
+            const tab = document.createElement("button");
+            tab.className = `seg-tab ${i === 0 ? "active" : "inactive"}`;
+            tab.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5"></i>${prettyFileName(fileName)}`;
+            tab.addEventListener("click", () => {
+              viewerFrame.src = fileUrl(fileName);
+              [...viewerTabs.children].forEach((t) => t.className = "seg-tab inactive");
+              tab.className = "seg-tab active";
+            });
+            viewerTabs.appendChild(tab);
+          });
+
+          viewerFrame.src = fileUrl(student.files[0]);
+        }
+        if (window.lucide) lucide.createIcons();
+      }
+
+      detailPlaceholder.classList.add("hidden");
+      detailContent.classList.remove("hidden");
+
+      // mobile: swap the sidebar for the main panel; desktop: both stay visible (CSS handles that)
+      document.body.classList.add("showing-detail");
+
+      renderList(currentFiltered());
+      window.scrollTo(0, 0);
+    }
+
+    function closeDetail() {
+      document.body.classList.remove("showing-detail");
+    }
+
+    function currentFiltered() {
+      const q = searchBox.value.trim().toLowerCase();
+      return students.filter(
+        (s) => s.name.toLowerCase().includes(q) || s.matric.toLowerCase().includes(q)
+      );
+    }
+
+    document.getElementById("backBtn").addEventListener("click", closeDetail);
+
+    document.getElementById("lightbox").addEventListener("click", closeLightbox);
+    document.getElementById("lightboxClose").addEventListener("click", (e) => { e.stopPropagation(); closeLightbox(); });
+    document.getElementById("lightboxImg").addEventListener("click", (e) => e.stopPropagation());
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLightbox(); });
+
+    const clearSearchBtn = document.getElementById("clearSearch");
+
+    searchBox.addEventListener("input", () => {
+      clearSearchBtn.classList.toggle("hidden", searchBox.value.length === 0);
+      renderList(currentFiltered());
+    });
+
+    clearSearchBtn.addEventListener("click", () => {
+      searchBox.value = "";
+      clearSearchBtn.classList.add("hidden");
+      renderList(currentFiltered());
+      searchBox.focus();
+    });
+
+    if (window.lucide) lucide.createIcons(); // static sidebar icons, before the fetch resolves
+
+    fetch("students.json")
+      .then((res) => res.json())
+      .then((data) => {
+        students = data;
+        renderList(students);
+      })
+      .catch(() => {
+        studentList.innerHTML =
+          '<p class="text-red-600 p-4">Could not load students.json — make sure it exists next to index.html.</p>';
+      });
+  </script>
+
+</body>
+</html>

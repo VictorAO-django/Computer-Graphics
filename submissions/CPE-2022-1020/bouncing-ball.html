@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Random Bouncing Ball</title>
+
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #202020;
+    }
+
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const ball = {
+    x: 300,
+    y: 200,
+    radius: 30,
+    vx: 5,
+    vy: 4
+};
+
+function animate() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Move ball
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Bounce off left and right walls
+    if (ball.x + ball.radius >= canvas.width ||
+        ball.x - ball.radius <= 0) {
+        ball.vx *= -1;
+    }
+
+    // Bounce off top and bottom walls
+    if (ball.y + ball.radius >= canvas.height ||
+        ball.y - ball.radius <= 0) {
+        ball.vy *= -1;
+    }
+
+    // Draw ball
+    const gradient = ctx.createRadialGradient(
+        ball.x - 10, ball.y - 10, 2,
+        ball.x, ball.y, ball.radius
+    );
+
+    gradient.addColorStop(0, "#ffaaaa");
+    gradient.addColorStop(0.5, "red");
+    gradient.addColorStop(1, "#700000");
+
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+</script>
+
+</body>
+</html>

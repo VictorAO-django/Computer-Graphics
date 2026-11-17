@@ -1,0 +1,218 @@
+<style>
+    body {
+        margin: 0;
+        background: #10172a;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
+
+    h2 {
+        padding: 10px;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+        background: #172554;
+        border: 2px solid white;
+    }
+
+    button {
+        margin: 12px;
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        background: #22c55e;
+        color: black;
+    }
+</style>
+<h2>🏎️ Racing Car, ⚽ Bouncing Ball & 🌙 Rotating Moon</h2>
+
+<canvas id="scene" width="600" height="400"></canvas>
+
+<button onclick="running = !running">
+    Start / Pause
+</button>
+
+<script>
+    const canvas = document.getElementById("scene");
+    const ctx = canvas.getContext("2d");
+
+    let carX = -100;
+    let ballX = 300;
+    let ballY = 180;
+    let ballSpeed = 1.5;
+    let moonAngle = 0;
+    let running = true;
+
+    function drawCar(x, y) {
+        // Car body
+        ctx.fillStyle = "red";
+        ctx.fillRect(x, y, 85, 25);
+
+        // Car roof
+        ctx.fillStyle = "orange";
+        ctx.fillRect(x + 18, y - 18, 45, 20);
+
+        // Windows
+        ctx.fillStyle = "lightblue";
+        ctx.fillRect(x + 24, y - 14, 14, 12);
+        ctx.fillRect(x + 42, y - 14, 15, 12);
+
+        // Wheels
+        ctx.fillStyle = "black";
+
+        ctx.beginPath();
+        ctx.arc(x + 18, y + 25, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x + 68, y + 25, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Wheel centers
+        ctx.fillStyle = "white";
+
+        ctx.beginPath();
+        ctx.arc(x + 18, y + 25, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x + 68, y + 25, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawBall(x, y) {
+        // Ball
+        ctx.fillStyle = "yellow";
+
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ball pattern
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 18, y);
+        ctx.lineTo(x + 18, y);
+        ctx.stroke();
+    }
+
+    function drawMoon() {
+        ctx.save();
+
+        // Moon center
+        ctx.translate(480, 100);
+        ctx.rotate(moonAngle);
+
+        // Moon body
+        ctx.fillStyle = "#e2e8f0";
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 35, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Craters
+        ctx.fillStyle = "#94a3b8";
+
+        ctx.beginPath();
+        ctx.arc(-12, -8, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(12, 12, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(13, -15, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rotating line
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -35);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawScene() {
+        // Clear screen
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Sky
+        ctx.fillStyle = "#172554";
+        ctx.fillRect(0, 0, 600, 400);
+
+        // Stars
+        ctx.fillStyle = "white";
+
+        for (let i = 0; i < 20; i++) {
+            let x = (i * 83 + 25) % 600;
+            let y = (i * 47 + 15) % 200;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Moon
+        drawMoon();
+
+        // Ground
+        ctx.fillStyle = "#15803d";
+        ctx.fillRect(0, 280, 600, 120);
+
+        // Racing track
+        ctx.fillStyle = "#374151";
+        ctx.fillRect(0, 310, 600, 75);
+
+        // Road markings
+        ctx.fillStyle = "white";
+
+        for (let i = 0; i < 6; i++) {
+            ctx.fillRect(i * 110 + 10, 345, 55, 5);
+        }
+
+        // Car
+        drawCar(carX, 335);
+        // Bouncing ball
+        drawBall(ballX, ballY);
+
+        if (running) {
+            // Move car
+            carX += 1.5;
+
+            if (carX > 620) {
+                carX = -100;
+            }
+
+            // Bounce ball vertically
+            ballY += ballSpeed;
+
+            if (ballY > 250 || ballY < 35) {
+                ballSpeed = -ballSpeed;
+            }
+
+            // Rotate moon
+            moonAngle += 0.09;
+        }
+
+        requestAnimationFrame(drawScene);
+    }
+
+    drawScene();
+</script>

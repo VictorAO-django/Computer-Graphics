@@ -1,0 +1,18 @@
+[
+  { "name": "Olusola Ayomide Victor", "matric": "CPE/2021/1057", "folder": "CPE-2021-1057", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Ajayi Akinola Martins", "matric": "CPE/2021/1010", "folder": "CPE-2021-1010", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Owolabi Ifeoluwa Nathanael", "matric": "CPE/2021/1062", "folder": "CPE-2021-1062", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Adeniran Nafisat Aderonke", "matric": "CPE/2021/1008", "folder": "CPE-2021-1008", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Jesuwo Michael Tolu", "matric": "CPE/2021/1034", "folder": "CPE-2021-1034", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Anifowose Ayomide Favour", "matric": "CPE/2021/1018", "folder": "CPE-2021-1018", "files": ["all-animations.html"] },
+  { "name": "Arotile Abimbola Opeyemi", "matric": "CPE/2021/1020", "folder": "CPE-2021-1020", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Olanrewaju Daniel", "matric": "CPE/2022/1071", "folder": "CPE-2022-1071", "photo": "photo.jpeg", "files": ["all-animations.html"] },
+  { "name": "Akande Testimony Peter", "matric": "CPE/2022/1020", "folder": "CPE-2022-1020", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Ajibola Daniel Oluwatomiwa", "matric": "CPE/2022/1018", "folder": "CPE-2022-1018", "photo": "photo.jpeg", "files": ["all-animations.html"] },
+  { "name": "Saliu Jamiu Ayodele", "matric": "CPE/2022/1091", "folder": "CPE-2022-1091", "photo": "photo.jpeg", "files": ["all-animations.html"] },
+  { "name": "Oladunni Ayomide David", "matric": "CPE/2022/1067", "folder": "CPE-2022-1067", "photo": "photo.jpeg", "files": ["all-animations.html"] },
+  { "name": "Adetayo Joshua Oluwadamilare", "matric": "CPE/2022/1009", "folder": "CPE-2022-1009", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Diekola Abdulazeez Ayomide", "matric": "CPE/2022/1041", "folder": "CPE-2022-1041", "photo": "photo.jpeg", "files": ["bouncing-ball.html", "moving-car.html", "earth-orbting.html"] },
+  { "name": "Oyekanmi Ayomiposi", "matric": "CPE/2022/1085", "folder": "CPE-2022-1085", "files": [] },
+  { "name": "Ajala Fortunate Iyinoluwa", "matric": "CPE/2022/1015", "folder": "CPE-2022-1015", "photo": "photo.jpeg", "files": ["all-animations.html"] }
+]

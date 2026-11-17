@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moving Car Animation</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #87CEEB;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Scene */
+.scene {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+/* Sun */
+.sun {
+    position: absolute;
+    top: 60px;
+    right: 100px;
+    width: 90px;
+    height: 90px;
+    background: #FFD700;
+    border-radius: 50%;
+    box-shadow: 0 0 40px #FFD700;
+}
+
+/* Clouds */
+.cloud {
+    position: absolute;
+    top: 100px;
+    left: 20%;
+    width: 120px;
+    height: 40px;
+    background: white;
+    border-radius: 50px;
+}
+
+.cloud::before,
+.cloud::after {
+    content: "";
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+}
+
+.cloud::before {
+    width: 55px;
+    height: 55px;
+    top: -25px;
+    left: 20px;
+}
+
+.cloud::after {
+    width: 65px;
+    height: 65px;
+    top: -30px;
+    right: 15px;
+}
+
+/* Road */
+.road {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 180px;
+    background: #333;
+}
+
+.road-line {
+    position: absolute;
+    top: 85px;
+    width: 100%;
+    height: 6px;
+    background: repeating-linear-gradient(
+        to right,
+        white 0px,
+        white 60px,
+        transparent 60px,
+        transparent 110px
+    );
+}
+
+/* Car movement */
+.car {
+    position: absolute;
+    bottom: 180px;
+    left: -250px;
+    width: 220px;
+    height: 110px;
+    animation: drive 7s linear infinite;
+}
+
+/* Car body */
+.body {
+    position: absolute;
+    bottom: 20px;
+    width: 220px;
+    height: 55px;
+    background: #e60000;
+    border-radius: 25px 40px 10px 10px;
+    box-shadow: inset 0 -8px 0 #990000;
+}
+
+/* Car roof */
+.roof {
+    position: absolute;
+    bottom: 65px;
+    left: 45px;
+    width: 125px;
+    height: 45px;
+    background: #cc0000;
+    clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+}
+
+/* Windows */
+.window {
+    position: absolute;
+    bottom: 70px;
+    left: 72px;
+    width: 45px;
+    height: 32px;
+    background: #bdeaff;
+    border-radius: 10px 5px 0 0;
+}
+
+.window.two {
+    left: 123px;
+}
+
+/* Wheels */
+.wheel {
+    position: absolute;
+    bottom: 0;
+    width: 48px;
+    height: 48px;
+    background: #111;
+    border: 6px solid #555;
+    border-radius: 50%;
+    animation: spin 0.5s linear infinite;
+}
+
+.wheel.one {
+    left: 30px;
+}
+
+.wheel.two {
+    right: 30px;
+}
+
+/* Wheel centre */
+.wheel::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ccc;
+    border-radius: 50%;
+    top: 12px;
+    left: 12px;
+}
+
+/* Headlight */
+.light {
+    position: absolute;
+    right: 0;
+    bottom: 40px;
+    width: 12px;
+    height: 18px;
+    background: yellow;
+    border-radius: 5px;
+}
+
+/* Animations */
+@keyframes drive {
+    from {
+        left: -250px;
+    }
+    to {
+        left: calc(100% + 250px);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="scene">
+
+    <div class="sun"></div>
+    <div class="cloud"></div>
+
+    <div class="road">
+        <div class="road-line"></div>
+    </div>
+
+    <div class="car">
+
+        <div class="roof"></div>
+
+        <div class="window"></div>
+        <div class="window two"></div>
+
+        <div class="body"></div>
+
+        <div class="wheel one"></div>
+        <div class="wheel two"></div>
+
+        <div class="light"></div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

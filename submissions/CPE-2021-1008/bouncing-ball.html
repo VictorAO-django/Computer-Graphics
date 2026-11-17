@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bouncing Ball Animation</title>
+
+<style>
+body {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  padding: 25px;
+}
+
+.title {
+  color: #5C6AC4;
+}
+
+#scene {
+  width: 800px;
+  max-width: 95%;
+  height: 450px;
+  margin: 20px auto;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(#dff4ff, #f8fcff);
+  border: 1px solid #ccc;
+}
+
+.ball {
+  width: 44px;
+  height: 44px;
+  background: orange;
+  border: 2px solid #b94c16;
+  border-radius: 50%;
+  position: absolute;
+  animation: moveX 4s linear infinite alternate,
+             moveY 2.5s linear infinite alternate;
+}
+
+@keyframes moveX {
+  from { left: 0; }
+  to { left: calc(100% - 44px); }
+}
+
+@keyframes moveY {
+  from { top: 0; }
+  to { top: calc(100% - 44px); }
+}
+
+</style>
+</head>
+
+<body>
+
+<h2 class="title">Bouncing Ball Animation</h2>
+
+<div id="scene">
+  <div class="ball"></div>
+</div>
+
+</body>
+</html>

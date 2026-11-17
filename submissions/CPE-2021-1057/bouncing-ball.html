@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bouncing Ball - Computer Graphics Assignment</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0b0712;
+  }
+  canvas {
+    background: #1a051f;
+    border: 2px solid #444;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene" width="800" height="600"></canvas>
+
+<script>
+/* =====================================================================
+ * BOUNCING BALL - HTML/Canvas version of bouncing_ball.c
+ * ---------------------------------------------------------------------
+ * Technique: Edge-collision detection + velocity reflection, exactly as
+ * in the C program. Every frame the ball moves by its velocity; when an
+ * edge touches a wall, that axis's velocity is flipped.
+ * ===================================================================== */
+
+/* ---------------------------------------------------------------------
+ *  THE SINGLE CONTROL POINT -- the only values to edit.
+ *      ballColor / bgColor   any CSS colour string
+ *      radius                ball size, in pixels
+ *      startX, startY        where the ball starts, in pixels;
+ *                            "center" centers it on that axis
+ *      velX, velY            pixels moved per frame on each axis;
+ *                            the SIGN decides direction, same as the C file.
+ *                            Leave one of them at 0 for a straight bounce
+ *                            along a single wall (left-right or up-down);
+ *                            set BOTH non-zero for a diagonal ball that
+ *                            bounces off all four edges of the screen.
+ * --------------------------------------------------------------------- */
+const CONFIG = {
+  ballColor: "#33d966",   // green
+  bgColor:   "#1a051f",   // deep purple
+  radius: 50,
+  startX: "center",
+  startY: "center",
+  velX: 10,
+  velY: 10,
+};
+
+const canvas = document.getElementById("scene");
+const ctx = canvas.getContext("2d");
+
+function resolveStart(value, axisSize) {
+  return value === "center" ? axisSize / 2 : value;
+}
+
+let ballX = resolveStart(CONFIG.startX, canvas.width);
+let ballY = resolveStart(CONFIG.startY, canvas.height);
+let velX = CONFIG.velX;
+let velY = CONFIG.velY;
+
+function drawCircle(cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function update() {
+  ballX += velX;
+  ballY += velY;
+
+  // left / right walls
+  if (ballX - CONFIG.radius <= 0) {
+    ballX = CONFIG.radius;
+    velX = -velX;
+  } else if (ballX + CONFIG.radius >= canvas.width) {
+    ballX = canvas.width - CONFIG.radius;
+    velX = -velX;
+  }
+
+  // top / bottom walls
+  if (ballY - CONFIG.radius <= 0) {
+    ballY = CONFIG.radius;
+    velY = -velY;
+  } else if (ballY + CONFIG.radius >= canvas.height) {
+    ballY = canvas.height - CONFIG.radius;
+    velY = -velY;
+  }
+}
+
+function draw() {
+  ctx.fillStyle = CONFIG.bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawCircle(ballX, ballY, CONFIG.radius, CONFIG.ballColor);
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>

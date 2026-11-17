@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Bouncing Ball</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #2a2a2e; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // ---------- Scene ----------
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x2a2a2e);
+  scene.fog = new THREE.Fog(0x2a2a2e, 15, 40);
+
+  const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 4, 10);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  // ---------- Lights ----------
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+  sun.position.set(5, 10, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+
+  // ---------- Black floor ----------
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(30, 30),
+    new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.3, metalness: 0.2 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Faint grid so the black surface still reads as 3D
+  const grid = new THREE.GridHelper(30, 30, 0x333333, 0x1c1c1c);
+  grid.position.y = 0.01;
+  scene.add(grid);
+
+  // ---------- Orange ball ----------
+  const RADIUS = 1;
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(RADIUS, 48, 48),
+    new THREE.MeshStandardMaterial({ color: 0xff7a00, roughness: 0.35, metalness: 0.1 })
+  );
+  ball.castShadow = true;
+  scene.add(ball);
+
+  // ---------- Physics ----------
+  const GRAVITY = -20;
+  const BOUNCE = 0.82;       // energy kept per bounce
+  const START_HEIGHT = 6;
+
+  let y = START_HEIGHT;
+  let vy = 0;
+  let squash = 0;            // 0 = round, 1 = fully flattened
+
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), 0.033);
+
+    vy += GRAVITY * dt;
+    y += vy * dt;
+
+    // Hit the floor
+    if (y <= RADIUS) {
+      y = RADIUS;
+      if (Math.abs(vy) < 1.5) {
+        // Ball has basically stopped: restart the drop
+        y = START_HEIGHT;
+        vy = 0;
+      } else {
+        squash = Math.min(Math.abs(vy) / 18, 0.4);
+        vy = -vy * BOUNCE;
+      }
+    }
+
+    // Squash on impact, stretch with speed, then relax back
+    squash *= 0.85;
+    const stretch = Math.min(Math.abs(vy) / 60, 0.12);
+    const sy = 1 - squash + stretch;
+    const sxz = 1 + squash * 0.6 - stretch * 0.5;
+
+    ball.scale.set(sxz, sy, sxz);
+    // Keep the bottom of the ball touching the floor while it squashes
+    ball.position.y = y - RADIUS * (1 - sy);
+    ball.rotation.y += dt * 0.8;
+
+    // Slow camera orbit for a real 3D feel
+    const t = performance.now() * 0.0002;
+    camera.position.x = Math.sin(t) * 10;
+    camera.position.z = Math.cos(t) * 10;
+    camera.lookAt(0, 2, 0);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+</script>
+</body>
+</html>

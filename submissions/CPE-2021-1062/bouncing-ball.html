@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bouncing Ball</title>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+canvas { display: block; background: rgb(240, 240, 240); }
+</style>
+</head>
+<body>
+<canvas id="myCanvas" width="800" height="500"></canvas>
+<script>
+const canvas = document.getElementById("myCanvas");
+const ctx = canvas.getContext("2d");
+
+let x = 100;
+let y = 100;
+let speedX = 5;
+let speedY = -2.5;
+let ballSize = 120;
+
+function draw() {
+    // Draw background
+    ctx.fillStyle = "rgb(240, 240, 240)";
+    ctx.fillRect(0, 0, 800, 500);
+
+    // Draw the ball
+    ctx.beginPath();
+    ctx.fillStyle = "rgb(24, 90, 80)";
+    ctx.arc(x, y, ballSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Move the ball
+    x += speedX;
+    y += speedY;
+
+    // Bounce off the left and right edges
+    if (x + ballSize / 2 >= canvas.width ||
+        x - ballSize / 2 <= 0) {
+        speedX *= -1;
+    }
+
+    // Bounce off the top and bottom edges
+    if (y + ballSize / 2 >= canvas.height ||
+        y - ballSize / 2 <= 0) {
+        speedY *= -1;
+    }
+
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

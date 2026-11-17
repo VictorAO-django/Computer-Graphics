@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moving Car, Moon and Bouncing Ball</title>
+
+<style>
+/* =====================================================
+   SETTINGS: change a value, save, refresh the browser.
+   ===================================================== */
+:root {
+  --scene-height: 320px;
+
+  /* ---------- CAR ---------- */
+  --car-speed: 9s;             /* time for one trip. Smaller = faster */
+  --car-direction: normal;     /* normal = left to right, reverse = right to left */
+  --car-color: #1fb5a8;
+  --wheel-speed: 0.5s;         /* time for one wheel turn. Smaller = faster */
+  --wheel-direction: normal;   /* normal or reverse */
+  --cloud-speed: 70s;
+
+  /* ---------- MOON ---------- */
+  --moon-speed: 14s;           /* time to cross the sky */
+  --moon-height: 200px;        /* how high the moon rises */
+  --moon-color: #fff6d6;
+  --star-speed: 3s;            /* how fast the stars twinkle */
+
+  /* ---------- BALL ---------- */
+  --ball-speed: 1.1s;          /* time for one bounce */
+  --bounce-height: 200px;      /* how high the ball goes */
+  --ball-color: #d96a26;
+  --ball-spin-speed: 2s;       /* how fast the ball turns while bouncing */
+}
+
+
+/* =====================================================
+   GENERAL (no need to change)
+   ===================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #14141a; color: #eee; }
+h2 { font-size: 15px; padding: 10px 16px; background: #22222b; }
+.scene { position: relative; height: var(--scene-height); overflow: hidden; }
+
+
+/* =====================================================
+   1. CAR  (sunset city)
+   ===================================================== */
+.car-scene { background: linear-gradient(#2d1b69 0%, #c94b7b 55%, #ffb26b 100%); }
+
+.sun {
+  position: absolute; left: 66%; bottom: 100px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, #fff3c4, #ffb347 60%, #ff7e5f);
+  box-shadow: 0 0 60px 20px rgba(255, 170, 90, 0.5);
+}
+
+/* Clouds drift slowly across the sky */
+.cloud {
+  position: absolute; width: 120px; height: 28px; border-radius: 28px;
+  background: rgba(255, 255, 255, 0.45);
+  animation: cloud-drift var(--cloud-speed) linear infinite;
+}
+.cloud::before, .cloud::after {
+  content: ""; position: absolute; border-radius: 50%; background: inherit;
+}
+.cloud::before { width: 50px; height: 50px; left: 18px; top: -24px; }
+.cloud::after  { width: 38px; height: 38px; left: 64px; top: -16px; }
+.cloud-1 { top: 40px; }
+.cloud-2 { top: 90px; animation-delay: -35s; transform: scale(0.7); }
+
+/* City skyline: each building has its own width (--w) and height (--h) in the HTML */
+.skyline {
+  position: absolute; left: 0; right: 0; bottom: 60px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.skyline span {
+  width: var(--w); height: var(--h);
+  background-color: #3a2660;
+  background-image: radial-gradient(circle, rgba(255, 214, 120, 0.8) 1.5px, transparent 2px);  /* lit windows */
+  background-size: 12px 16px;
+}
+
+.road { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: #2a2a33; }
+.road::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: #55556a;  /* kerb */
+}
+.road::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 40px; height: 4px;                    /* dashes */
+  background: repeating-linear-gradient(90deg, #f2f2f2 0 40px, transparent 40px 80px);
+}
+
+/* The car is one box. Everything inside it moves together. */
+.car {
+  position: absolute; left: 0; bottom: 20px;
+  width: 220px; height: 80px;
+
+  animation-name: drive;
+  animation-duration: var(--car-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: var(--car-direction);
+}
+
+.car-body {
+  position: absolute; bottom: 14px; left: 0;
+  width: 220px; height: 32px; border-radius: 10px 16px 8px 8px;
+  background: var(--car-color);
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.18);   /* darker strip along the bottom */
+}
+.car-cabin {
+  position: absolute; bottom: 44px; left: 48px;
+  width: 124px; height: 32px; background: var(--car-color);
+  clip-path: polygon(0 100%, 18% 0, 70% 0, 100% 100%);   /* slanted roof shape */
+}
+.car-window {
+  position: absolute; bottom: 46px; left: 58px;
+  width: 106px; height: 24px; background: #cfe9f7;
+  clip-path: polygon(0 100%, 17% 0, 70% 0, 100% 100%);
+}
+.car-window::after {   /* the pillar between the two windows */
+  content: ""; position: absolute; left: 46%; top: 0; width: 5px; height: 100%;
+  background: var(--car-color);
+}
+.headlight { position: absolute; right: 0; bottom: 30px; width: 10px; height: 8px; border-radius: 3px;
+             background: #fff3b0; box-shadow: 0 0 12px 4px #ffe58a; }
+.taillight { position: absolute; left: 0; bottom: 30px; width: 8px; height: 8px; border-radius: 3px;
+             background: #ff3b3b; box-shadow: 0 0 8px 2px #ff3b3b; }
+.beam {
+  position: absolute; left: 218px; bottom: 24px; width: 130px; height: 36px;
+  background: linear-gradient(90deg, rgba(255, 240, 170, 0.6), transparent);
+  clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+}
+
+.wheel {
+  position: absolute; bottom: 0; width: 42px; height: 42px; border-radius: 50%;
+  border: 5px solid #111;
+  background: repeating-conic-gradient(#d8d8d8 0 20deg, #555 20deg 60deg);   /* spokes */
+
+  animation-name: spin;
+  animation-duration: var(--wheel-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: var(--wheel-direction);
+}
+.wheel-back  { left: 30px; }
+.wheel-front { left: 148px; }
+
+/* 100vw means "the full width of the screen" */
+@keyframes drive       { from { transform: translateX(-380px); } to { transform: translateX(100vw); } }
+@keyframes spin        { to   { transform: rotate(360deg); } }
+@keyframes cloud-drift { from { translate: -200px 0; } to { translate: 100vw 0; } }
+
+
+/* =====================================================
+   2. MOON  (starry night)
+   ===================================================== */
+.moon-scene { background: linear-gradient(#070319 0%, #1d0f45 60%, #5b2b7a 100%); }
+
+/* Stars are tiny dots. Each "box-shadow" entry is one more star:  x-position  y-position
+   To add a star, add another entry (x is in vw = % of screen width, y is in px). */
+.stars {
+  position: absolute; top: 12px; left: 2vw; border-radius: 50%; background: #fff;
+  animation: twinkle var(--star-speed) ease-in-out infinite;
+}
+.stars-small {
+  width: 2px; height: 2px;
+  box-shadow: 10vw 70px #fff, 16vw 15px #fff, 23vw 130px #fff, 29vw 50px #fff, 36vw 100px #fff,
+              42vw 20px #fff, 50vw 75px #fff, 56vw 140px #fff, 62vw 35px #fff, 69vw 95px #fff,
+              75vw 10px #fff, 81vw 120px #fff, 87vw 55px #fff, 93vw 90px #fff, 97vw 25px #fff;
+}
+.stars-medium {
+  width: 3px; height: 3px; animation-delay: -1s;
+  box-shadow: 6vw 105px #fff, 19vw 60px #fff, 33vw 25px #fff, 46vw 120px #fff, 59vw 80px #fff,
+              72vw 45px #fff, 84vw 135px #fff, 91vw 15px #fff;
+}
+.stars-big {
+  width: 4px; height: 4px; animation-delay: -2s; animation-duration: calc(var(--star-speed) * 1.6);
+  box-shadow: 13vw 40px #fff, 38vw 85px #fff, 54vw 30px #fff, 78vw 70px #fff, 95vw 110px #fff;
+}
+@keyframes twinkle { 50% { opacity: 0.25; } }
+
+/* A shooting star that appears every few seconds */
+.shooting-star {
+  position: absolute; left: 78vw; top: 14px; width: 90px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, #fff, transparent);
+  opacity: 0;
+  animation: shoot 7s linear infinite;
+}
+@keyframes shoot {
+  0%   { opacity: 0; transform: translate(0, 0) rotate(-35deg); }
+  3%   { opacity: 1; }
+  10%  { opacity: 0; transform: translate(-240px, 168px) rotate(-35deg); }
+  100% { opacity: 0; transform: translate(-240px, 168px) rotate(-35deg); }
+}
+
+/* Two boxes make the arc: .moon-sideways moves across, .moon moves up then down */
+.moon-sideways {
+  position: absolute; left: 0; bottom: -40px; width: 100px; height: 100px;
+
+  animation-name: moon-across;
+  animation-duration: var(--moon-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.moon {
+  width: 100px; height: 100px; border-radius: 50%;
+  box-shadow: 0 0 50px 14px rgba(255, 246, 214, 0.35);   /* glow */
+  background:                                            /* craters, then the moon surface */
+    radial-gradient(circle at 66% 28%, rgba(120, 110, 80, 0.35) 0 9px, transparent 10px),
+    radial-gradient(circle at 30% 62%, rgba(120, 110, 80, 0.30) 0 7px, transparent 8px),
+    radial-gradient(circle at 62% 72%, rgba(120, 110, 80, 0.28) 0 5px, transparent 6px),
+    radial-gradient(circle at 38% 24%, rgba(120, 110, 80, 0.22) 0 4px, transparent 5px),
+    radial-gradient(circle at 30% 30%, var(--moon-color), #d6d1ae);
+
+  animation-name: moon-updown;
+  animation-duration: var(--moon-speed);
+  animation-iteration-count: infinite;
+}
+
+/* Hills hide the moon at the start and end, so it rises and sets */
+.hill { position: absolute; bottom: -50px; height: 110px; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.hill-back  { left: -20%; width: 85%; background: #24123f; }
+.hill-front { left: 35%;  width: 85%; background: #120824; }
+
+@keyframes moon-across { from { transform: translateX(-140px); } to { transform: translateX(100vw); } }
+@keyframes moon-updown {
+  0%   { transform: translateY(0); animation-timing-function: ease-out; }
+  50%  { transform: translateY(calc(var(--moon-height) * -1)); animation-timing-function: ease-in; }
+  100% { transform: translateY(0); }
+}
+
+
+/* =====================================================
+   3. BOUNCING BALL  (basketball court)
+   ===================================================== */
+.ball-scene { background: linear-gradient(#1e2a44, #3a5078); }
+
+.floor {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 70px),   /* floorboards */
+    linear-gradient(#d9984f, #b8743a);
+}
+.floor::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: #fff; }
+
+/* Hoop on the right */
+.backboard { position: absolute; right: 8%; bottom: 165px; width: 8px; height: 90px;
+             background: #f4f4f4; border-radius: 2px; box-shadow: 0 0 0 2px #888; }
+.rim { position: absolute; right: calc(8% + 8px); bottom: 175px; width: 54px; height: 10px;
+       border: 3px solid #ff6a2b; border-radius: 0 0 30px 30px; border-top: none; }
+
+/* .ball-wrap bounces and squashes. .ball (inside it) spins. */
+.ball-wrap {
+  position: absolute; left: 50%; margin-left: -35px; bottom: 40px;
+  width: 70px; height: 70px;
+  transform-origin: bottom center;   /* the ball squashes from its bottom */
+
+  animation-name: bounce;
+  animation-duration: var(--ball-speed);
+  animation-iteration-count: infinite;
+}
+.ball {
+  width: 100%; height: 100%; border-radius: 50%;
+  background:                         /* black seam lines, then the orange ball */
+    linear-gradient(90deg, transparent 48.5%, #2b1206 48.5% 51.5%, transparent 51.5%),
+    linear-gradient(0deg,  transparent 48.5%, #2b1206 48.5% 51.5%, transparent 51.5%),
+    radial-gradient(circle at -18px 35px, transparent 0 36px, #2b1206 36px 39px, transparent 39px),
+    radial-gradient(circle at 88px 35px,  transparent 0 36px, #2b1206 36px 39px, transparent 39px),
+    radial-gradient(circle at 30% 30%, #ff9a4d, var(--ball-color));
+
+  animation: ball-spin var(--ball-spin-speed) linear infinite;
+}
+
+.shadow {
+  position: absolute; left: 50%; margin-left: -35px; bottom: 34px;
+  width: 70px; height: 14px; border-radius: 50%; background: #000;
+  animation: shadow var(--ball-speed) infinite;
+}
+
+@keyframes ball-spin { to { transform: rotate(360deg); } }
+
+@keyframes bounce {
+  0%   { transform: translateY(calc(var(--bounce-height) * -1)); animation-timing-function: ease-in; }  /* falling */
+  45%  { transform: translateY(0) scale(1, 1);        animation-timing-function: ease-out; }            /* touches floor */
+  50%  { transform: translateY(0) scale(1.25, 0.75);  animation-timing-function: ease-out; }            /* squashed */
+  55%  { transform: translateY(0) scale(1, 1);        animation-timing-function: ease-out; }            /* rising */
+  100% { transform: translateY(calc(var(--bounce-height) * -1)); }
+}
+@keyframes shadow {   /* the shadow is small when the ball is high, big when it is low */
+  0%   { transform: scale(0.5);  opacity: 0.15; animation-timing-function: ease-in; }
+  45%  { transform: scale(1.05); opacity: 0.45; }
+  50%  { transform: scale(1.2);  opacity: 0.5;  animation-timing-function: ease-out; }
+  55%  { transform: scale(1.05); opacity: 0.45; animation-timing-function: ease-out; }
+  100% { transform: scale(0.5);  opacity: 0.15; }
+}
+</style>
+</head>
+
+<body>
+
+<h2>1. Moving car</h2>
+<div class="scene car-scene">
+  <div class="sun"></div>
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+
+  <div class="skyline">
+    <span style="--w:50px; --h:90px"></span>
+    <span style="--w:36px; --h:130px"></span>
+    <span style="--w:60px; --h:70px"></span>
+    <span style="--w:44px; --h:150px"></span>
+    <span style="--w:56px; --h:100px"></span>
+    <span style="--w:34px; --h:120px"></span>
+    <span style="--w:64px; --h:85px"></span>
+    <span style="--w:40px; --h:160px"></span>
+    <span style="--w:52px; --h:110px"></span>
+    <span style="--w:38px; --h:75px"></span>
+    <span style="--w:58px; --h:135px"></span>
+    <span style="--w:46px; --h:95px"></span>
+    <span style="--w:60px; --h:120px"></span>
+  </div>
+
+  <div class="road"></div>
+
+  <div class="car">
+    <div class="beam"></div>
+    <div class="car-cabin"></div>
+    <div class="car-window"></div>
+    <div class="car-body"></div>
+    <div class="headlight"></div>
+    <div class="taillight"></div>
+    <div class="wheel wheel-back"></div>
+    <div class="wheel wheel-front"></div>
+  </div>
+</div>
+
+<h2>2. Moving moon</h2>
+<div class="scene moon-scene">
+  <div class="stars stars-small"></div>
+  <div class="stars stars-medium"></div>
+  <div class="stars stars-big"></div>
+  <div class="shooting-star"></div>
+
+  <div class="moon-sideways">
+    <div class="moon"></div>
+  </div>
+
+  <div class="hill hill-back"></div>
+  <div class="hill hill-front"></div>
+</div>
+
+<h2>3. Bouncing ball</h2>
+<div class="scene ball-scene">
+  <div class="backboard"></div>
+  <div class="rim"></div>
+  <div class="floor"></div>
+  <div class="shadow"></div>
+  <div class="ball-wrap">
+    <div class="ball"></div>
+  </div>
+</div>
+
+</body>
+</html>
